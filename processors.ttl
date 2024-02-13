@@ -1,0 +1,50 @@
+@prefix js: <https://w3id.org/conn/js#> .
+@prefix fno: <https://w3id.org/function/ontology#> .
+@prefix fnom: <https://w3id.org/function/vocabulary/mapping#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix : <https://w3id.org/conn#> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix dc: <http://purl.org/dc/terms/> .
+
+js:HttpFetch a js:JsProcess;
+    js:file <./lib/index.js>;
+    js:function "httpFetch";
+    js:location <./>;
+    js:mapping [
+        a fno:Mapping;
+        fno:parameterMapping [
+            a fnom:PositionParameterMapping ;
+            fnom:functionParameter "message";
+            fnom:implementationParameterPosition "0"^^xsd:integer
+        ], [
+            a fnom:PositionParameterMapping ;
+            fnom:functionParameter "writer";
+            fnom:implementationParameterPosition "1"^^xsd:integer
+        ], [
+            a fnom:PositionParameterMapping ;
+            fnom:functionParameter "closeOnEnd";
+            fnom:implementationParameterPosition "2"^^xsd:integer
+        ]
+    ].
+
+[] a sh:NodeShape;
+    sh:targetClass js:HttpFetch;
+    sh:property [
+        sh:path js:message;
+        sh:name "message";
+        sh:datatype xsd:string;
+        sh:maxCount 1;
+        sh:minCount 1
+    ], [
+        sh:path js:output;
+        sh:name "writer";
+        sh:class :WriterChannel;
+        sh:maxCount 1;
+        sh:minCount 1
+    ], [
+        sh:path js:closeOnEnd;
+        sh:name "closeOnEnd";
+        sh:datatype xsd:boolean;
+        sh:maxCount 1
+    ].
