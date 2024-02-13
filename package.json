@@ -1,0 +1,29 @@
+{
+  "name": "http-utils-processor-ts",
+  "version": "0.0.1",
+  "description": "HTTP util functions to be used within the Connector Architecture",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "test": "bun test"
+  },
+  "files": [
+    "lib/**/*",
+    "./processors.ttl"
+  ],
+  "keywords": [
+    "HTTP",
+    "Connector Architecture"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://gitlab.ilabt.imec.be/KNoWS/projects/connector-architecture/http-utils-processor-ts.git"
+  },
+  "author": "Jens Pots",
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  }
+}
