@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "build": "tsc",
-    "test": "bun test"
+    "test": "bun test",
+    "pretest": "bun run build"
   },
   "files": [
     "lib/**/*",
@@ -21,6 +22,8 @@
   },
   "author": "Jens Pots",
   "devDependencies": {
+    "@ajuvercr/js-runner": "^0.1.14",
+    "@jest/globals": "^29.7.0",
     "@types/bun": "latest"
   },
   "peerDependencies": {
