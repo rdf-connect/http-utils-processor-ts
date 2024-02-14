@@ -32,9 +32,15 @@ export async function httpFetch(
             throw new Error("No body in response");
         }
 
-        // TODO: send data in streaming fashion.
-        const data = await res.text();
-        await writer.push(data);
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        while (true) {
+            const data = await reader.read();
+            if (data.done) {
+                break;
+            }
+            await writer.push(decoder.decode(data.value));
+        }
 
         // Optionally close the output stream.
         if (closeOnEnd) {
