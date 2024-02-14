@@ -15,10 +15,8 @@ describe("HTTP Utils tests", () => {
         <> owl:imports <./node_modules/@ajuvercr/js-runner/ontology.ttl>, <./processors.ttl>.
 
         [ ] a :Channel;
-            :reader <jr>;
             :writer <jw>.
             
-        <jr> a js:JsReaderChannel.
         <jw> a js:JsWriterChannel.
     `;
 
