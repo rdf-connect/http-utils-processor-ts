@@ -1,0 +1,4 @@
+greeting:
+  stage: greeting
+  script:
+    - echo "Hello, World!"
