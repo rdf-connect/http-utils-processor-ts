@@ -27,8 +27,10 @@ describe("HTTP Utils tests", () => {
     test("js:HttpFetch is properly defined", async () => {
         const proc = `
             [ ] a js:HttpFetch; 
-                js:message "Hello, World!"; 
-                js:output <jw>;
+                js:url "http://example.com"; 
+                js:method "GET";
+                js:headers "content-type: text/plain";
+                js:writer <jw>;
                 js:closeOnEnd true.
         `;
 
@@ -44,11 +46,13 @@ describe("HTTP Utils tests", () => {
 
         const argss = extractSteps(env, quads, config);
         expect(argss.length).toBe(1);
-        expect(argss[0].length).toBe(3);
+        expect(argss[0].length).toBe(5);
 
-        const [[message, output, closeOnEnd]] = argss;
-        expect(message).toBe("Hello, World!");
-        testWriter(output);
+        const [[url, method, headers, writer, closeOnEnd]] = argss;
+        expect(url).toEqual("http://example.com");
+        expect(method).toEqual("GET");
+        expect(headers).toEqual("content-type: text/plain");
+        testWriter(writer);
         expect(closeOnEnd).toBeTruthy();
 
         await checkProc(env.file, env.func);

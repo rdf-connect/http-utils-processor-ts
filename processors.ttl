@@ -15,33 +15,51 @@ js:HttpFetch a js:JsProcess;
         a fno:Mapping;
         fno:parameterMapping [
             a fnom:PositionParameterMapping ;
-            fnom:functionParameter "message";
+            fnom:functionParameter "url";
             fnom:implementationParameterPosition "0"^^xsd:integer
         ], [
-            a fnom:PositionParameterMapping ;
-            fnom:functionParameter "writer";
-            fnom:implementationParameterPosition "1"^^xsd:integer
+            a fnom:positionparametermapping ;
+            fnom:functionparameter "method";
+            fnom:implementationparameterposition "1"^^xsd:integer
+        ], [
+           a fnom:positionparametermapping ;
+           fnom:functionparameter "headers";
+           fnom:implementationparameterposition "2"^^xsd:integer
+        ], [
+            a fnom:positionparametermapping ;
+            fnom:functionparameter "writer";
+            fnom:implementationparameterposition "3"^^xsd:integer
         ], [
             a fnom:PositionParameterMapping ;
             fnom:functionParameter "closeOnEnd";
-            fnom:implementationParameterPosition "2"^^xsd:integer
+            fnom:implementationParameterPosition "4"^^xsd:integer
         ]
     ].
 
 [] a sh:NodeShape;
     sh:targetClass js:HttpFetch;
     sh:property [
-        sh:path js:message;
-        sh:name "message";
+        sh:path js:url;
+        sh:name "url";
         sh:datatype xsd:string;
-        sh:maxCount 1;
-        sh:minCount 1
+        sh:maxcount 1;
+        sh:mincount 1
     ], [
-        sh:path js:output;
+       sh:path js:method;
+       sh:name "method";
+       sh:datatype xsd:string;
+       sh:maxcount 1
+   ], [
+        sh:path js:headers;
+        sh:name "headers";
+        sh:datatype xsd:string;
+        sh:maxcount 1
+    ], [
+        sh:path js:writer;
         sh:name "writer";
-        sh:class :WriterChannel;
-        sh:maxCount 1;
-        sh:minCount 1
+        sh:class :writerchannel;
+        sh:maxcount 1;
+        sh:mincount 1
     ], [
         sh:path js:closeOnEnd;
         sh:name "closeOnEnd";
