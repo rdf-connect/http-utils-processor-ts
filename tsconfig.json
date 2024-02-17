@@ -15,7 +15,7 @@
     "allowSyntheticDefaultImports": true,
     "incremental": true,
     "esModuleInterop": true,
-    "types": ["node"]
+    "types": ["bun-types"]
   },
   "ts-node": {
     "esm": true,

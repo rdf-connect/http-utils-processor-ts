@@ -24,7 +24,7 @@
   "devDependencies": {
     "@ajuvercr/js-runner": "^0.1.14",
     "@jest/globals": "^29.7.0",
-    "@types/bun": "latest"
+    "@types/bun": "^1.0.5"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
