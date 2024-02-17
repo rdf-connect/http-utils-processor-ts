@@ -40,7 +40,7 @@ describe("Functional tests for the httpFetch Connector Architecture function", (
         await (await httpFetch(
             server.url.toString(),
             "GET",
-            "Content-Type: text/plain, Accept: text/plain",
+            ["Content-Type: text/plain", "Accept: text/plain"],
             writeStream,
             true,
         ))();

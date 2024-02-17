@@ -1,10 +1,9 @@
 import { Writer } from "@treecg/connector-types";
 
 // Function which converts comma-separated headers to a Headers object.
-function parseHeaders(headers: string): Headers {
-    const headerList = headers.split(",");
+function parseHeaders(headers: string[]): Headers {
     const result = new Headers();
-    headerList.forEach((header) => {
+    headers.forEach((header) => {
         const [key, value] = header.split(":");
         result.append(key.trim(), value.trim());
     });
@@ -13,8 +12,8 @@ function parseHeaders(headers: string): Headers {
 
 export async function httpFetch(
     url: string,
-    method: string = "GET",
-    headers: string = "",
+    method: "GET" | "PUT" | "POST" | "PATCH" | "DELETE" = "GET",
+    headers: string[] = [],
     writer: Writer<string | Buffer>,
     closeOnEnd: boolean = true,
 ) {

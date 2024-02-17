@@ -27,7 +27,7 @@ describe("HTTP Utils tests", () => {
             [ ] a js:HttpFetch; 
                 js:url "http://example.com"; 
                 js:method "GET";
-                js:headers "content-type: text/plain";
+                js:headers "content-type: text/plain", "accept: text/plain";
                 js:writer <jw>;
                 js:closeOnEnd true.
         `;
@@ -49,7 +49,7 @@ describe("HTTP Utils tests", () => {
         const [[url, method, headers, writer, closeOnEnd]] = argss;
         expect(url).toEqual("http://example.com");
         expect(method).toEqual("GET");
-        expect(headers).toEqual("content-type: text/plain");
+        expect(headers).toEqual(["content-type: text/plain", "accept: text/plain"]);
         testWriter(writer);
         expect(closeOnEnd).toBeTruthy();
 
