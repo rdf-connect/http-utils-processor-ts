@@ -41,7 +41,6 @@ describe("httpFetch", () => {
 
             // If a timeout is request, simply wait for the given time.
             if (timeoutQuery) {
-                console.log(timeoutQuery);
                 const timeout = Number(timeoutQuery);
                 if (Number.isNaN(timeout)) {
                     throw Error("Invalid timeout");

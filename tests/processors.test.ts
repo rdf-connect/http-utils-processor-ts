@@ -1,7 +1,7 @@
 import { expect, test, describe } from "@jest/globals";
 import { extractProcessors, extractSteps, Source } from "@ajuvercr/js-runner";
 
-describe("HTTP Utils tests", () => {
+describe("processor", () => {
     const pipeline = `
         @prefix js: <https://w3id.org/conn/js#>.
         @prefix ws: <https://w3id.org/conn/ws#>.
@@ -21,7 +21,7 @@ describe("HTTP Utils tests", () => {
 
     const baseIRI = process.cwd() + "/config.ttl";
 
-    test("js:HttpFetch is properly defined", async () => {
+    test("definition", async () => {
         const proc = `
             [ ] a js:HttpFetch;
                 js:url "http://example.com";
@@ -66,7 +66,6 @@ describe("HTTP Utils tests", () => {
             "content-type: text/plain",
             "accept: text/plain",
         ]);
-        console.log(acceptStatusCodes);
         expect(acceptStatusCodes).toEqual([]);
         expect(bodyCanBeEmpty).toBeUndefined();
         testWriter(writer);
@@ -75,7 +74,7 @@ describe("HTTP Utils tests", () => {
         await checkProc(env.file, env.func);
     });
 
-    test("js:HttpFetch requires a url", async () => {
+    test("parameter - url required", async () => {
         const proc = `
             [ ] a js:HttpFetch;
                 js:method "GET";
