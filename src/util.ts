@@ -29,28 +29,30 @@ export function parseHeaders(headers: string[]): Headers {
  */
 export function statusCodeAccepted(
     statusCode: number,
-    acceptStatusCodes: string,
+    acceptStatusCodes: string[],
 ): boolean {
-    return acceptStatusCodes.split(",").map(piece => {
-        // Option A: range
-        if (piece.includes("-")) {
-            const [start, end] = piece.split("-").map(Number);
+    return acceptStatusCodes
+        .map((it) => {
+            // Option A: range
+            if (it.includes("-")) {
+                const [start, end] = it.split("-").map(Number);
 
-            // Can also fail if a negative integer is given.
-            if ([start, end].some(isNaN)) {
+                // Can also fail if a negative integer is given.
+                if ([start, end].some(isNaN)) {
+                    throw HttpUtilsError.invalidStatusCodeRange();
+                }
+
+                return start <= statusCode && statusCode < end;
+            }
+
+            // Option B: literal
+            const status = Number(it);
+
+            if (isNaN(status)) {
                 throw HttpUtilsError.invalidStatusCodeRange();
             }
 
-            return start <= statusCode && statusCode < end;
-        }
-
-        // Option B: literal
-        const status = Number(piece);
-
-        if (isNaN(status)) {
-            throw HttpUtilsError.invalidStatusCodeRange();
-        }
-
-        return statusCode === status;
-    }).includes(true);
+            return statusCode === status;
+        })
+        .includes(true);
 }

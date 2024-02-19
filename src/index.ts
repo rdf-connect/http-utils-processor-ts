@@ -26,7 +26,7 @@ export async function httpFetch(
     writer: Writer<string | Buffer>,
     closeOnEnd: boolean = true,
     headers: string[] = [],
-    acceptStatusCodes: string = "200-300",
+    acceptStatusCodes: string[] = ["200-300"],
     bodyCanBeEmpty: boolean = false,
     timeOutMilliseconds: number | null = null,
 ) {

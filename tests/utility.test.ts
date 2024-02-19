@@ -26,7 +26,7 @@ describe("parseHeaders", () => {
 });
 
 describe("statusCodeAccepted", () => {
-    const validInput = "100, 200-300, 400";
+    const validInput = ["100", "200-300", "400"];
 
     test("contained as literal", () => {
         expect(statusCodeAccepted(100, validInput)).toBe(true);
@@ -45,23 +45,23 @@ describe("statusCodeAccepted", () => {
     });
 
     test("no accepted status codes", () => {
-        expect(statusCodeAccepted(200, "")).toBe(false);
+        expect(statusCodeAccepted(200, [])).toBe(false);
     });
 
     test("invalid literal - non numerical", () => {
-        expect(() => statusCodeAccepted(200, "200-300,a")).toThrow(
+        expect(() => statusCodeAccepted(200, ["200-300", "a"])).toThrow(
             HttpUtilsError.invalidStatusCodeRange(),
         );
     });
 
     test("invalid range - delimiter", () => {
-        expect(() => statusCodeAccepted(0, "200_300")).toThrow(
+        expect(() => statusCodeAccepted(0, ["200_300"])).toThrow(
             HttpUtilsError.invalidStatusCodeRange(),
         );
     });
 
     test("invalid range - non numerical", () => {
-        expect(() => statusCodeAccepted(0, "a-b")).toThrow(
+        expect(() => statusCodeAccepted(0, ["a-b"])).toThrow(
             HttpUtilsError.invalidStatusCodeRange(),
         );
     });

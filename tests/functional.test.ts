@@ -111,7 +111,7 @@ describe("Functional tests for the httpFetch Connector Architecture function", (
             writeStream,
             true,
             ["Content-Type: text/plain", "Accept: text/plain"],
-            "201-300",
+            ["201-300"],
         );
 
         expect(func()).rejects.toThrow(
@@ -129,7 +129,7 @@ describe("Functional tests for the httpFetch Connector Architecture function", (
             writeStream,
             true,
             ["Content-Type: text/plain", "Accept: text/plain"],
-            "100,500-502,505",
+            ["100", "500-502", "505"],
         );
 
         await func();
@@ -145,7 +145,7 @@ describe("Functional tests for the httpFetch Connector Architecture function", (
             writeStream,
             true,
             ["Content-Type: text/plain", "Accept: text/plain"],
-            "200-300,500,503",
+            ["200-300", "500", "503"],
         );
 
         await func();
@@ -159,7 +159,7 @@ describe("Functional tests for the httpFetch Connector Architecture function", (
                 new SimpleStream<Buffer>(),
                 true,
                 ["Content-Type text/plain"],
-                "2oo-3oo",
+                ["2oo-3oo"],
             ),
         ).rejects.toThrow(HttpUtilsError.invalidHeaders());
     });
@@ -172,7 +172,7 @@ describe("Functional tests for the httpFetch Connector Architecture function", (
                 new SimpleStream<Buffer>(),
                 true,
                 ["Content-Type: text/plain", "Accept: text/plain"],
-                "2oo-3oo",
+                ["2oo-3oo"],
             ),
         ).rejects.toThrow(HttpUtilsError.invalidStatusCodeRange());
     });
@@ -196,7 +196,7 @@ describe("Functional tests for the httpFetch Connector Architecture function", (
                 new SimpleStream(),
                 true,
                 [],
-                "200",
+                ["200"],
                 false,
             ),
         ).rejects.toThrow(
@@ -214,7 +214,7 @@ describe("Functional tests for the httpFetch Connector Architecture function", (
             new SimpleStream(),
             true,
             ["Content-Type: text/plain", "Accept: text/plain"],
-            "200-300",
+            ["200-300"],
             true,
             100,
         );

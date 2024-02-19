@@ -15,7 +15,7 @@ describe("HTTP Utils tests", () => {
 
         [ ] a :Channel;
             :writer <jw>.
-            
+
         <jw> a js:JsWriterChannel.
     `;
 
@@ -23,8 +23,8 @@ describe("HTTP Utils tests", () => {
 
     test("js:HttpFetch is properly defined", async () => {
         const proc = `
-            [ ] a js:HttpFetch; 
-                js:url "http://example.com"; 
+            [ ] a js:HttpFetch;
+                js:url "http://example.com";
                 js:method "GET";
                 js:headers "content-type: text/plain", "accept: text/plain";
                 js:writer <jw>;
@@ -66,7 +66,8 @@ describe("HTTP Utils tests", () => {
             "content-type: text/plain",
             "accept: text/plain",
         ]);
-        expect(acceptStatusCodes).toBeUndefined();
+        console.log(acceptStatusCodes);
+        expect(acceptStatusCodes).toEqual([]);
         expect(bodyCanBeEmpty).toBeUndefined();
         testWriter(writer);
         expect(closeOnEnd).toBeTruthy();
@@ -76,7 +77,7 @@ describe("HTTP Utils tests", () => {
 
     test("js:HttpFetch requires a url", async () => {
         const proc = `
-            [ ] a js:HttpFetch; 
+            [ ] a js:HttpFetch;
                 js:method "GET";
                 js:headers "content-type: text/plain", "accept: text/plain";
                 js:writer <jw>;

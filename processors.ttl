@@ -75,8 +75,7 @@ js:HttpFetch a js:JsProcess;
     ], [
         sh:path js:acceptStatusCodes;
         sh:name "acceptStatusCodes";
-        sh:datatype xsd:string;
-        sh:maxCount 1
+        sh:datatype xsd:string
     ], [
         sh:path js:bodyCanBeEmpty;
         sh:name "bodyCanBeEmpty";
