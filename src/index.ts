@@ -47,20 +47,22 @@ export async function httpFetch(
     // therefore we should wait until the rest of the pipeline is set
     // to start pushing down data
     return async () => {
-        const res = await timeout(
-            timeOutMilliseconds,
-            fetch(url, {
-                method,
-                headers: headersObject,
-            }).catch(() => {
-                throw HttpUtilsError.genericFetchError();
-            }),
-        ).catch(() => {
-            throw HttpUtilsError.timeOutError();
+        // Initialize the fetch promise.
+        const fetchPromise = fetch(url, {
+            method,
+            headers: headersObject,
+        }).catch(() => {
+            throw HttpUtilsError.genericFetchError();
         });
 
+        // Wrap the fetch promise in a timeout.
+        const res = await timeout(timeOutMilliseconds, fetchPromise).catch(
+            () => {
+                throw HttpUtilsError.timeOutError();
+            },
+        );
+
         // Check if we accept the status code.
-        // TODO: this can be optimized since we already went over the status codes.
         if (!statusCodeAccepted(res.status, acceptStatusCodes)) {
             throw HttpUtilsError.statusCodeNotAccepted(res.status);
         }

@@ -41,6 +41,7 @@ describe("httpFetch", () => {
 
             // If a timeout is request, simply wait for the given time.
             if (timeoutQuery) {
+                console.log(timeoutQuery);
                 const timeout = Number(timeoutQuery);
                 if (Number.isNaN(timeout)) {
                     throw Error("Invalid timeout");
@@ -77,7 +78,7 @@ describe("httpFetch", () => {
         },
     });
 
-    test("Given a endpoint, data is read and streamed out", async () => {
+    test("ok", async () => {
         const writeStream = new SimpleStream<Buffer>();
 
         let output = "";
@@ -109,7 +110,7 @@ describe("httpFetch", () => {
         await func();
     });
 
-    test("Invalid status throws error (default).", async () => {
+    test("status code - unsuccessful default", async () => {
         const func = await HttpFetch({
             url: `${server.url.toString()}?status=500`,
         });
@@ -119,7 +120,7 @@ describe("httpFetch", () => {
         );
     });
 
-    test("Deny 200 status code", async () => {
+    test("status code - unsuccessful overwritten", async () => {
         const func = await HttpFetch({
             url: `${server.url.toString()}?status=200`,
             acceptStatusCodes: ["201-300"],
@@ -130,7 +131,7 @@ describe("httpFetch", () => {
         );
     });
 
-    test("Explicitly accepted status - range", async () => {
+    test("status code - successful range", async () => {
         const func = await HttpFetch({
             url: `${server.url.toString()}?status=501`,
             acceptStatusCodes: ["500-502"],
@@ -139,7 +140,7 @@ describe("httpFetch", () => {
         await func();
     });
 
-    test("Explicitly accepted status - single", async () => {
+    test("status code - successful single", async () => {
         const func = await HttpFetch({
             url: `${server.url.toString()}?status=500`,
             acceptStatusCodes: ["500"],
@@ -148,16 +149,7 @@ describe("httpFetch", () => {
         await func();
     });
 
-    test("Illegal header should throw error", async () => {
-        const func = HttpFetch({
-            url: server.url.toString(),
-            headers: ["Content-Type text/plain"],
-        });
-
-        return expect(func).rejects.toThrow(HttpUtilsError.invalidHeaders());
-    });
-
-    test("Illegal status range should throw error", async () => {
+    test("status code - malformed range", async () => {
         const func = HttpFetch({
             url: `${server.url.toString()}?status=500`,
             acceptStatusCodes: ["2oo-3oo"],
@@ -166,7 +158,42 @@ describe("httpFetch", () => {
         expect(func).rejects.toThrow(HttpUtilsError.invalidStatusCodeRange());
     });
 
-    test("Empty body throws error", async () => {
+    test("headers - successful", async () => {
+        const writeStream = new SimpleStream<Buffer>();
+
+        let output = "";
+        writeStream
+            .data((data) => {
+                output += data;
+            })
+            .on("end", () => {
+                const res = JSON.parse(output);
+
+                // Headers must be set correctly.
+                expect(res["headers"]["content-type"]).toEqual("text/plain");
+                expect(res["headers"]["accept"]).toEqual("text/plain");
+            });
+
+        // Await and execute returned function of processor.
+        const func = await HttpFetch({
+            url: server.url.toString(),
+            writeStream,
+            headers: ["Content-Type: text/plain", "Accept: text/plain"],
+        });
+
+        await func();
+    });
+
+    test("headers - malformed", async () => {
+        const func = HttpFetch({
+            url: server.url.toString(),
+            headers: ["Content-Type text/plain"],
+        });
+
+        return expect(func).rejects.toThrow(HttpUtilsError.invalidHeaders());
+    });
+
+    test("empty body - error", async () => {
         const func = await HttpFetch({
             url: `${server.url.toString()}?body=empty`,
         });
@@ -174,7 +201,7 @@ describe("httpFetch", () => {
         return expect(func()).toThrow(HttpUtilsError.noBodyInResponse());
     });
 
-    test("Cannot combine HEAD method and bodyCanBeEmpty", async () => {
+    test("empty body - illegal head method", async () => {
         const func = HttpFetch({
             url: `${server.url.toString()}?status=200`,
             method: "HEAD",
@@ -188,7 +215,16 @@ describe("httpFetch", () => {
         );
     });
 
-    test("Maximum timeout results in error.", async () => {
+    test("timeout - successful", async () => {
+        const func = await HttpFetch({
+            url: `${server.url.toString()}?timeout=100`,
+            timeout: 500,
+        });
+
+        await func();
+    });
+
+    test("timeout - exceeded", async () => {
         const func = await HttpFetch({
             url: `${server.url.toString()}?timeout=500`,
             timeout: 100,
