@@ -3,7 +3,31 @@ import { SimpleStream } from "@ajuvercr/js-runner";
 import { httpFetch } from "../src";
 import { HttpUtilsError } from "../src/error";
 
-describe("Functional tests for the httpFetch Connector Architecture function", () => {
+interface HttpFetchParams {
+    url: string;
+    method?: string;
+    writeStream?: SimpleStream<Buffer>;
+    bodyCanBeEmpty?: boolean;
+    headers?: string[];
+    acceptStatusCodes?: string[];
+    timeout?: number;
+    closeOnEnd?: boolean;
+}
+
+function HttpFetch(params: HttpFetchParams) {
+    return httpFetch(
+        params.url,
+        params.method ?? "GET",
+        params.writeStream ?? new SimpleStream<Buffer>(),
+        params.closeOnEnd ?? true,
+        params.headers ?? [],
+        params.acceptStatusCodes ?? ["200-300"],
+        params.bodyCanBeEmpty ?? false,
+        params.timeout,
+    );
+}
+
+describe("httpFetch", () => {
     // We initialize a simple Bun server to test our process against. Note that
     // since we cannot simply use `expect` inside the `fetch` function, so we
     // pass the required values to the client using the response body.
@@ -76,25 +100,19 @@ describe("Functional tests for the httpFetch Connector Architecture function", (
             });
 
         // Await and execute returned function of processor.
-        await (
-            await httpFetch(server.url.toString(), "GET", writeStream, true, [
-                "Content-Type: text/plain",
-                "Accept: text/plain",
-            ])
-        )();
+        const func = await HttpFetch({
+            url: server.url.toString(),
+            writeStream,
+            headers: ["Content-Type: text/plain", "Accept: text/plain"],
+        });
+
+        await func();
     });
 
     test("Invalid status throws error (default).", async () => {
-        const writeStream = new SimpleStream<Buffer>();
-
-        // Await and execute returned function of processor.
-        const func = await httpFetch(
-            `${server.url.toString()}?status=500`,
-            "GET",
-            writeStream,
-            true,
-            ["Content-Type: text/plain", "Accept: text/plain"],
-        );
+        const func = await HttpFetch({
+            url: `${server.url.toString()}?status=500`,
+        });
 
         expect(func()).rejects.toThrow(
             HttpUtilsError.statusCodeNotAccepted(500),
@@ -102,17 +120,10 @@ describe("Functional tests for the httpFetch Connector Architecture function", (
     });
 
     test("Deny 200 status code", async () => {
-        const writeStream = new SimpleStream<Buffer>();
-
-        // Await and execute returned function of processor.
-        const func = await httpFetch(
-            `${server.url.toString()}?status=200`,
-            "GET",
-            writeStream,
-            true,
-            ["Content-Type: text/plain", "Accept: text/plain"],
-            ["201-300"],
-        );
+        const func = await HttpFetch({
+            url: `${server.url.toString()}?status=200`,
+            acceptStatusCodes: ["201-300"],
+        });
 
         expect(func()).rejects.toThrow(
             HttpUtilsError.statusCodeNotAccepted(200),
@@ -120,86 +131,57 @@ describe("Functional tests for the httpFetch Connector Architecture function", (
     });
 
     test("Explicitly accepted status - range", async () => {
-        const writeStream = new SimpleStream<Buffer>();
-
-        // Await and execute returned function of processor.
-        const func = await httpFetch(
-            `${server.url.toString()}?status=501`,
-            "GET",
-            writeStream,
-            true,
-            ["Content-Type: text/plain", "Accept: text/plain"],
-            ["100", "500-502", "505"],
-        );
+        const func = await HttpFetch({
+            url: `${server.url.toString()}?status=501`,
+            acceptStatusCodes: ["500-502"],
+        });
 
         await func();
     });
 
     test("Explicitly accepted status - single", async () => {
-        const writeStream = new SimpleStream<Buffer>();
-
-        // Await and execute returned function of processor.
-        const func = await httpFetch(
-            `${server.url.toString()}?status=500`,
-            "GET",
-            writeStream,
-            true,
-            ["Content-Type: text/plain", "Accept: text/plain"],
-            ["200-300", "500", "503"],
-        );
+        const func = await HttpFetch({
+            url: `${server.url.toString()}?status=500`,
+            acceptStatusCodes: ["500"],
+        });
 
         await func();
     });
 
     test("Illegal header should throw error", async () => {
-        return expect(
-            httpFetch(
-                `${server.url.toString()}?status=500`,
-                "GET",
-                new SimpleStream<Buffer>(),
-                true,
-                ["Content-Type text/plain"],
-                ["2oo-3oo"],
-            ),
-        ).rejects.toThrow(HttpUtilsError.invalidHeaders());
+        const func = HttpFetch({
+            url: server.url.toString(),
+            headers: ["Content-Type text/plain"],
+        });
+
+        return expect(func).rejects.toThrow(HttpUtilsError.invalidHeaders());
     });
 
     test("Illegal status range should throw error", async () => {
-        expect(
-            httpFetch(
-                `${server.url.toString()}?status=500`,
-                "GET",
-                new SimpleStream<Buffer>(),
-                true,
-                ["Content-Type: text/plain", "Accept: text/plain"],
-                ["2oo-3oo"],
-            ),
-        ).rejects.toThrow(HttpUtilsError.invalidStatusCodeRange());
+        const func = HttpFetch({
+            url: `${server.url.toString()}?status=500`,
+            acceptStatusCodes: ["2oo-3oo"],
+        });
+
+        expect(func).rejects.toThrow(HttpUtilsError.invalidStatusCodeRange());
     });
 
     test("Empty body throws error", async () => {
-        const func = await httpFetch(
-            `${server.url.toString()}?body=empty`,
-            "GET",
-            new SimpleStream<Buffer>(),
-            true,
-        );
+        const func = await HttpFetch({
+            url: `${server.url.toString()}?body=empty`,
+        });
 
-        return expect(func).toThrow(HttpUtilsError.noBodyInResponse());
+        return expect(func()).toThrow(HttpUtilsError.noBodyInResponse());
     });
 
     test("Cannot combine HEAD method and bodyCanBeEmpty", async () => {
-        return expect(
-            httpFetch(
-                server.url.toString(),
-                "HEAD",
-                new SimpleStream(),
-                true,
-                [],
-                ["200"],
-                false,
-            ),
-        ).rejects.toThrow(
+        const func = HttpFetch({
+            url: `${server.url.toString()}?status=200`,
+            method: "HEAD",
+            bodyCanBeEmpty: false,
+        });
+
+        return expect(func).rejects.toThrow(
             HttpUtilsError.illegalParameters(
                 "Cannot use HEAD method with bodyCanBeEmpty set to false",
             ),
@@ -207,17 +189,10 @@ describe("Functional tests for the httpFetch Connector Architecture function", (
     });
 
     test("Maximum timeout results in error.", async () => {
-        // Await and execute returned function of processor.
-        const func = await httpFetch(
-            `${server.url.toString()}?timeout=500`,
-            "GET",
-            new SimpleStream(),
-            true,
-            ["Content-Type: text/plain", "Accept: text/plain"],
-            ["200-300"],
-            true,
-            100,
-        );
+        const func = await HttpFetch({
+            url: `${server.url.toString()}?timeout=500`,
+            timeout: 100,
+        });
 
         return expect(func()).rejects.toThrow(HttpUtilsError.timeOutError());
     });
