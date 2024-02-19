@@ -25,7 +25,10 @@ function parseHeaders(headers: string[]): Headers {
  * is formatted according to the rules specified in `httpFetch`.
  * @throws { HttpUtilsError } If the status code range is invalid.
  */
-function statusCodeAccepted(statusCode: number, acceptStatusCodes: string): boolean {
+function statusCodeAccepted(
+    statusCode: number,
+    acceptStatusCodes: string,
+): boolean {
     const pieces = acceptStatusCodes.split(",");
 
     for (const piece of pieces) {
@@ -79,7 +82,9 @@ export async function httpFetch(
 ) {
     // Sanity check.
     if (!bodyCanBeEmpty && method == "HEAD") {
-        throw HttpUtilsError.illegalParameters("Cannot use HEAD method with bodyCanBeEmpty set to false");
+        throw HttpUtilsError.illegalParameters(
+            "Cannot use HEAD method with bodyCanBeEmpty set to false",
+        );
     }
 
     // Parse headers beforehand.

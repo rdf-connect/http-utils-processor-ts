@@ -25,30 +25,51 @@ export class HttpUtilsError extends Error {
     }
 
     static statusCodeNotAccepted(statusCode: number) {
-        return new HttpUtilsError(`Status code ${statusCode} not accepted`, HttpUtilsErrorType.StatusCodeNotAccepted);
+        return new HttpUtilsError(
+            `Status code ${statusCode} not accepted`,
+            HttpUtilsErrorType.StatusCodeNotAccepted,
+        );
     }
 
     static noBodyInResponse() {
-        return new HttpUtilsError("No body in response", HttpUtilsErrorType.NoBodyInResponse);
+        return new HttpUtilsError(
+            "No body in response",
+            HttpUtilsErrorType.NoBodyInResponse,
+        );
     }
 
     static invalidStatusCodeRange() {
-        return new HttpUtilsError("Invalid status code range", HttpUtilsErrorType.InvalidStatusCodeRange);
+        return new HttpUtilsError(
+            "Invalid status code range",
+            HttpUtilsErrorType.InvalidStatusCodeRange,
+        );
     }
 
     static invalidHeaders() {
-        return new HttpUtilsError("Invalid headers", HttpUtilsErrorType.InvalidHeaders);
+        return new HttpUtilsError(
+            "Invalid headers",
+            HttpUtilsErrorType.InvalidHeaders,
+        );
     }
 
     static genericFetchError() {
-        return new HttpUtilsError("Generic fetch error", HttpUtilsErrorType.GenericFetchError);
+        return new HttpUtilsError(
+            "Generic fetch error",
+            HttpUtilsErrorType.GenericFetchError,
+        );
     }
 
     static illegalParameters(info: string | null = null) {
-        return new HttpUtilsError(info ?? "Illegal parameters", HttpUtilsErrorType.IllegalParameters);
+        return new HttpUtilsError(
+            info ?? "Illegal parameters",
+            HttpUtilsErrorType.IllegalParameters,
+        );
     }
 
     static connectionError() {
-        return new HttpUtilsError("Connection error", HttpUtilsErrorType.ConnectionError);
+        return new HttpUtilsError(
+            "Connection error",
+            HttpUtilsErrorType.ConnectionError,
+        );
     }
 }

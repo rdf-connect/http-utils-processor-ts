@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { SimpleStream } from "@ajuvercr/js-runner";
 import { httpFetch } from "../src";
-import {HttpUtilsError} from "../src/error";
+import { HttpUtilsError } from "../src/error";
 
 describe("Functional tests for the httpFetch Connector Architecture function", () => {
     // We initialize a simple Bun server to test our process against. Note that
@@ -30,13 +30,16 @@ describe("Functional tests for the httpFetch Connector Architecture function", (
                 throw Error("Invalid body query");
             }
 
-            return new Response(JSON.stringify({
-                greeting: "Hello, World!",
-                headers: req.headers,
-                method: req.method,
-            }), {
-                status,
-            });
+            return new Response(
+                JSON.stringify({
+                    greeting: "Hello, World!",
+                    headers: req.headers,
+                    method: req.method,
+                }),
+                {
+                    status,
+                },
+            );
         },
     });
 
@@ -44,30 +47,31 @@ describe("Functional tests for the httpFetch Connector Architecture function", (
         const writeStream = new SimpleStream<Buffer>();
 
         let output = "";
-        writeStream.data(data => {
-            output += data;
-        }).on("end", () => {
-            const res = JSON.parse(output);
+        writeStream
+            .data((data) => {
+                output += data;
+            })
+            .on("end", () => {
+                const res = JSON.parse(output);
 
-            // Constants
-            expect(res["greeting"]).toEqual("Hello, World!");
+                // Constants
+                expect(res["greeting"]).toEqual("Hello, World!");
 
-            // Headers must be set correctly.
-            expect(res["headers"]["content-type"]).toEqual("text/plain");
-            expect(res["headers"]["accept"]).toEqual("text/plain");
+                // Headers must be set correctly.
+                expect(res["headers"]["content-type"]).toEqual("text/plain");
+                expect(res["headers"]["accept"]).toEqual("text/plain");
 
-            // Check whether the correct method was used.
-            expect(res["method"]).toEqual("GET");
-        });
+                // Check whether the correct method was used.
+                expect(res["method"]).toEqual("GET");
+            });
 
         // Await and execute returned function of processor.
-        await (await httpFetch(
-            server.url.toString(),
-            "GET",
-            writeStream,
-            true,
-            ["Content-Type: text/plain", "Accept: text/plain"],
-        ))();
+        await (
+            await httpFetch(server.url.toString(), "GET", writeStream, true, [
+                "Content-Type: text/plain",
+                "Accept: text/plain",
+            ])
+        )();
     });
 
     test("Invalid status throws error (default).", async () => {
@@ -82,7 +86,9 @@ describe("Functional tests for the httpFetch Connector Architecture function", (
             ["Content-Type: text/plain", "Accept: text/plain"],
         );
 
-        expect(func()).rejects.toThrow(HttpUtilsError.statusCodeNotAccepted(500));
+        expect(func()).rejects.toThrow(
+            HttpUtilsError.statusCodeNotAccepted(500),
+        );
     });
 
     test("Deny 200 status code", async () => {
@@ -98,7 +104,9 @@ describe("Functional tests for the httpFetch Connector Architecture function", (
             "201-300",
         );
 
-        expect(func()).rejects.toThrow(HttpUtilsError.statusCodeNotAccepted(200));
+        expect(func()).rejects.toThrow(
+            HttpUtilsError.statusCodeNotAccepted(200),
+        );
     });
 
     test("Explicitly accepted status - range", async () => {
@@ -134,25 +142,29 @@ describe("Functional tests for the httpFetch Connector Architecture function", (
     });
 
     test("Illegal header should throw error", async () => {
-        expect(httpFetch(
-            `${server.url.toString()}?status=500`,
-            "GET",
-            new SimpleStream<Buffer>(),
-            true,
-            ["Content-Type text/plain"],
-            "2oo-3oo",
-        )).rejects.toThrow(HttpUtilsError.invalidHeaders());
+        expect(
+            httpFetch(
+                `${server.url.toString()}?status=500`,
+                "GET",
+                new SimpleStream<Buffer>(),
+                true,
+                ["Content-Type text/plain"],
+                "2oo-3oo",
+            ),
+        ).rejects.toThrow(HttpUtilsError.invalidHeaders());
     });
 
     test("Illegal status range should throw error", async () => {
-        expect(httpFetch(
-            `${server.url.toString()}?status=500`,
-            "GET",
-            new SimpleStream<Buffer>(),
-            true,
-            ["Content-Type: text/plain", "Accept: text/plain"],
-            "2oo-3oo",
-        )).rejects.toThrow(HttpUtilsError.invalidStatusCodeRange());
+        expect(
+            httpFetch(
+                `${server.url.toString()}?status=500`,
+                "GET",
+                new SimpleStream<Buffer>(),
+                true,
+                ["Content-Type: text/plain", "Accept: text/plain"],
+                "2oo-3oo",
+            ),
+        ).rejects.toThrow(HttpUtilsError.invalidStatusCodeRange());
     });
 
     test("Empty body throws error", async () => {
@@ -167,14 +179,20 @@ describe("Functional tests for the httpFetch Connector Architecture function", (
     });
 
     test("Cannot combine HEAD method and bodyCanBeEmpty", async () => {
-        expect(httpFetch(
-            server.url.toString(),
-            "HEAD",
-            new SimpleStream(),
-            true,
-            [],
-            "200",
-            false,
-        )).rejects.toThrow(HttpUtilsError.illegalParameters("Cannot use HEAD method with bodyCanBeEmpty set to false"));
+        expect(
+            httpFetch(
+                server.url.toString(),
+                "HEAD",
+                new SimpleStream(),
+                true,
+                [],
+                "200",
+                false,
+            ),
+        ).rejects.toThrow(
+            HttpUtilsError.illegalParameters(
+                "Cannot use HEAD method with bodyCanBeEmpty set to false",
+            ),
+        );
     });
 });

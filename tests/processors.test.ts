@@ -1,7 +1,6 @@
 import { expect, test, describe } from "@jest/globals";
 import { extractProcessors, extractSteps, Source } from "@ajuvercr/js-runner";
 
-
 describe("HTTP Utils tests", () => {
     const pipeline = `
         @prefix js: <https://w3id.org/conn/js#>.
@@ -38,7 +37,11 @@ describe("HTTP Utils tests", () => {
             type: "memory",
         };
 
-        const { processors, quads, shapes: config } = await extractProcessors(source);
+        const {
+            processors,
+            quads,
+            shapes: config,
+        } = await extractProcessors(source);
         const env = processors.find((x) => x.ty.value.endsWith("HttpFetch"))!;
         expect(env).toBeDefined();
 
@@ -46,10 +49,23 @@ describe("HTTP Utils tests", () => {
         expect(argss.length).toBe(1);
         expect(argss[0].length).toBe(7);
 
-        const [[url, method, writer, closeOnEnd, headers, acceptStatusCodes, bodyCanBeEmpty]] = argss;
+        const [
+            [
+                url,
+                method,
+                writer,
+                closeOnEnd,
+                headers,
+                acceptStatusCodes,
+                bodyCanBeEmpty,
+            ],
+        ] = argss;
         expect(url).toEqual("http://example.com");
         expect(method).toEqual("GET");
-        expect(headers).toEqual(["content-type: text/plain", "accept: text/plain"]);
+        expect(headers).toEqual([
+            "content-type: text/plain",
+            "accept: text/plain",
+        ]);
         expect(acceptStatusCodes).toBeUndefined();
         expect(bodyCanBeEmpty).toBeUndefined();
         testWriter(writer);
@@ -73,7 +89,11 @@ describe("HTTP Utils tests", () => {
             type: "memory",
         };
 
-        const { processors, quads, shapes: config } = await extractProcessors(source);
+        const {
+            processors,
+            quads,
+            shapes: config,
+        } = await extractProcessors(source);
         const env = processors.find((x) => x.ty.value.endsWith("HttpFetch"))!;
         expect(env).toBeDefined();
 
