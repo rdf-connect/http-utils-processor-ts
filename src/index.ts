@@ -77,18 +77,30 @@ export async function httpFetch(
     acceptStatusCodes: string = "200-300",
     bodyCanBeEmpty: boolean = false,
 ) {
+    // Sanity check.
+    if (!bodyCanBeEmpty && method == "HEAD") {
+        throw HttpUtilsError.illegalParameters("Cannot use HEAD method with bodyCanBeEmpty set to false");
+    }
+
+    // Parse headers beforehand.
+    const headersObject = parseHeaders(headers);
+
+    // Check validity of the status code range. Will throw error if invalid.
+    statusCodeAccepted(0, acceptStatusCodes);
+
     // This is a source processor (i.e, the first processor in a pipeline),
     // therefore we should wait until the rest of the pipeline is set
     // to start pushing down data
     return async () => {
         const res = await fetch(url, {
             method,
-            headers: parseHeaders(headers),
+            headers: headersObject,
         }).catch(() => {
             throw HttpUtilsError.genericFetchError();
         });
 
         // Check if we accept the status code.
+        // TODO: this can be optimized since we already went over the status codes.
         if (!statusCodeAccepted(res.status, acceptStatusCodes)) {
             throw HttpUtilsError.statusCodeNotAccepted(res.status);
         }
@@ -110,11 +122,17 @@ export async function httpFetch(
         // Push the data down the pipeline.
         const reader = res.body.getReader();
         const decoder = new TextDecoder();
-        let data = await reader.read();
 
-        while (!data.done) {
+        while (true) {
+            let data = await reader.read().catch(() => {
+                throw HttpUtilsError.connectionError();
+            });
+
+            if (data.done) {
+                break;
+            }
+
             await writer.push(decoder.decode(data.value));
-            data = await reader.read();
         }
 
         // Optionally close the output stream.

@@ -8,6 +8,8 @@ enum HttpUtilsErrorType {
     InvalidStatusCodeRange,
     InvalidHeaders,
     GenericFetchError,
+    IllegalParameters,
+    ConnectionError,
 }
 
 /**
@@ -40,5 +42,13 @@ export class HttpUtilsError extends Error {
 
     static genericFetchError() {
         return new HttpUtilsError("Generic fetch error", HttpUtilsErrorType.GenericFetchError);
+    }
+
+    static illegalParameters(info: string | null = null) {
+        return new HttpUtilsError(info ?? "Illegal parameters", HttpUtilsErrorType.IllegalParameters);
+    }
+
+    static connectionError() {
+        return new HttpUtilsError("Connection error", HttpUtilsErrorType.ConnectionError);
     }
 }

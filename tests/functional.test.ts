@@ -10,11 +10,24 @@ describe("Functional tests for the httpFetch Connector Architecture function", (
     const server = Bun.serve({
         fetch(req) {
             const requestUrl = new URL(req.url);
+            const bodyQuery = requestUrl.searchParams.get("body");
             const statusQuery = requestUrl.searchParams.get("status");
             const status = statusQuery ? Number(statusQuery) : 200;
 
+            // Make sure that the request is valid, as a sanity check.
             if (Number.isNaN(status)) {
                 throw Error("Invalid status code");
+            }
+
+            // If a specific body is requested.
+            if (bodyQuery) {
+                if (bodyQuery === "empty") {
+                    return new Response(null, {
+                        status,
+                    });
+                }
+
+                throw Error("Invalid body query");
             }
 
             return new Response(JSON.stringify({
@@ -118,5 +131,50 @@ describe("Functional tests for the httpFetch Connector Architecture function", (
         );
 
         await func();
+    });
+
+    test("Illegal header should throw error", async () => {
+        expect(httpFetch(
+            `${server.url.toString()}?status=500`,
+            "GET",
+            new SimpleStream<Buffer>(),
+            true,
+            ["Content-Type text/plain"],
+            "2oo-3oo",
+        )).rejects.toThrow(HttpUtilsError.invalidHeaders());
+    });
+
+    test("Illegal status range should throw error", async () => {
+       expect(httpFetch(
+           `${server.url.toString()}?status=500`,
+           "GET",
+           new SimpleStream<Buffer>(),
+           true,
+           ["Content-Type: text/plain", "Accept: text/plain"],
+           "2oo-3oo",
+       )).rejects.toThrow(HttpUtilsError.invalidStatusCodeRange());
+    });
+
+    test("Empty body throws error", async () => {
+       const func = await httpFetch(
+           `${server.url.toString()}?body=empty`,
+           "GET",
+           new SimpleStream<Buffer>(),
+           true,
+       );
+
+       expect(func).toThrow(HttpUtilsError.noBodyInResponse());
+    });
+
+    test("Cannot combine HEAD method and bodyCanBeEmpty", async () => {
+        expect(httpFetch(
+            server.url.toString(),
+            "HEAD",
+            new SimpleStream(),
+            true,
+            [],
+            "200",
+            false,
+        )).rejects.toThrow(HttpUtilsError.illegalParameters("Cannot use HEAD method with bodyCanBeEmpty set to false"));
     });
 });
