@@ -109,7 +109,9 @@ export async function httpFetch(
             }).catch(() => {
                 throw HttpUtilsError.genericFetchError();
             }),
-        );
+        ).catch(() => {
+            throw HttpUtilsError.timeOutError();
+        });
 
         // Check if we accept the status code.
         // TODO: this can be optimized since we already went over the status codes.

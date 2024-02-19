@@ -1,8 +1,6 @@
-import { HttpUtilsError } from "./error";
-
 /**
  * Will either return the result of the given promise, or reject if it takes
- * longer than `ms` to run.
+ * longer than a given amount of milliseconds to run.
  * @param ms The maximum runtime in milliseconds. If null, no timeout is set.
  * The promise will simply return as-is.
  * @param promise The promise to run.
@@ -22,10 +20,7 @@ export async function timeout<T>(
 
     // Rejects after `ms` milliseconds.
     const timeoutPromise = new Promise((_, reject) => {
-        timeoutHandle = setTimeout(
-            () => reject(HttpUtilsError.timeOutError()),
-            ms,
-        );
+        timeoutHandle = setTimeout(() => reject(), ms);
     });
 
     // The only way we get a result is if the original promise resolves, since

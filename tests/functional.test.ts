@@ -2,7 +2,6 @@ import { describe, expect, test } from "bun:test";
 import { SimpleStream } from "@ajuvercr/js-runner";
 import { httpFetch } from "../src";
 import { HttpUtilsError } from "../src/error";
-import { timeout } from "../src/promise";
 
 describe("Functional tests for the httpFetch Connector Architecture function", () => {
     // We initialize a simple Bun server to test our process against. Note that
@@ -205,27 +204,6 @@ describe("Functional tests for the httpFetch Connector Architecture function", (
                 "Cannot use HEAD method with bodyCanBeEmpty set to false",
             ),
         );
-    });
-
-    test("Exceed time limit", async () => {
-        function wait(ms: number): Promise<void> {
-            return new Promise((resolve) => setTimeout(resolve, ms));
-        }
-
-        return expect(timeout(100, wait(500))).rejects.toThrow(
-            HttpUtilsError.timeOutError(),
-        );
-    });
-
-    test("Within time limit", async () => {
-        return expect(
-            timeout(
-                500,
-                new Promise((resolve) => {
-                    setTimeout(() => resolve(true), 100);
-                }),
-            ),
-        ).resolves.toBeTruthy();
     });
 
     test("Maximum timeout results in error.", async () => {
