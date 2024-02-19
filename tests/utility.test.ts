@@ -48,6 +48,12 @@ describe("statusCodeAccepted", () => {
         expect(statusCodeAccepted(200, "")).toBe(false);
     });
 
+    test("invalid literal - non numerical", () => {
+        expect(() => statusCodeAccepted(200, "200-300,a")).toThrow(
+            HttpUtilsError.invalidStatusCodeRange(),
+        );
+    });
+
     test("invalid range - delimiter", () => {
         expect(() => statusCodeAccepted(0, "200_300")).toThrow(
             HttpUtilsError.invalidStatusCodeRange(),

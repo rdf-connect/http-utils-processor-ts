@@ -23,34 +23,34 @@ export function parseHeaders(headers: string[]): Headers {
  * @param acceptStatusCodes a string of comma-separated status codes which
  * is formatted according to the rules specified in `httpFetch`.
  * @throws { HttpUtilsError } If the status code range is invalid.
+ *
+ * Note that we use `map` over a simple for loop in order to detect invalid
+ * status code patterns.
  */
 export function statusCodeAccepted(
     statusCode: number,
     acceptStatusCodes: string,
 ): boolean {
-    const pieces = acceptStatusCodes.split(",");
-
-    for (const piece of pieces) {
+    return acceptStatusCodes.split(",").map(piece => {
+        // Option A: range
         if (piece.includes("-")) {
             const [start, end] = piece.split("-").map(Number);
 
+            // Can also fail if a negative integer is given.
             if ([start, end].some(isNaN)) {
                 throw HttpUtilsError.invalidStatusCodeRange();
             }
 
-            if (start <= statusCode && statusCode < end) {
-                return true;
-            }
-        } else {
-            const status = Number(piece);
-            if (isNaN(status)) {
-                throw HttpUtilsError.invalidStatusCodeRange();
-            }
-            if (statusCode === status) {
-                return true;
-            }
+            return start <= statusCode && statusCode < end;
         }
-    }
 
-    return false;
+        // Option B: literal
+        const status = Number(piece);
+
+        if (isNaN(status)) {
+            throw HttpUtilsError.invalidStatusCodeRange();
+        }
+
+        return statusCode === status;
+    }).includes(true);
 }
