@@ -44,12 +44,14 @@ describe("HTTP Utils tests", () => {
 
         const argss = extractSteps(env, quads, config);
         expect(argss.length).toBe(1);
-        expect(argss[0].length).toBe(5);
+        expect(argss[0].length).toBe(7);
 
-        const [[url, method, headers, writer, closeOnEnd]] = argss;
+        const [[url, method, writer, closeOnEnd, headers, acceptStatusCodes, bodyCanBeEmpty]] = argss;
         expect(url).toEqual("http://example.com");
         expect(method).toEqual("GET");
         expect(headers).toEqual(["content-type: text/plain", "accept: text/plain"]);
+        expect(acceptStatusCodes).toBeUndefined();
+        expect(bodyCanBeEmpty).toBeUndefined();
         testWriter(writer);
         expect(closeOnEnd).toBeTruthy();
 

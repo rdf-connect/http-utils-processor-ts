@@ -23,16 +23,24 @@ js:HttpFetch a js:JsProcess;
             fnom:implementationParameterPosition "1"^^xsd:integer
         ], [
            a fnom:PositionParameterMapping ;
-           fnom:functionParameter "headers";
+           fnom:functionParameter "writer";
            fnom:implementationParameterPosition "2"^^xsd:integer
         ], [
             a fnom:PositionParameterMapping ;
-            fnom:functionParameter "writer";
+            fnom:functionParameter "closeOnEnd";
             fnom:implementationParameterPosition "3"^^xsd:integer
         ], [
             a fnom:PositionParameterMapping ;
-            fnom:functionParameter "closeOnEnd";
+            fnom:functionParameter "headers";
             fnom:implementationParameterPosition "4"^^xsd:integer
+        ], [
+            a fnom:PositionParameterMapping ;
+            fnom:functionParameter "acceptStatusCodes";
+            fnom:implementationParameterPosition "5"^^xsd:integer
+        ], [
+            a fnom:PositionParameterMapping ;
+            fnom:functionParameter "bodyCanBeEmpty";
+            fnom:implementationParameterPosition "6"^^xsd:integer
         ]
     ].
 
@@ -62,6 +70,16 @@ js:HttpFetch a js:JsProcess;
     ], [
         sh:path js:closeOnEnd;
         sh:name "closeOnEnd";
+        sh:datatype xsd:boolean;
+        sh:maxCount 1
+    ], [
+        sh:path js:acceptStatusCodes;
+        sh:name "acceptStatusCodes";
+        sh:datatype xsd:string;
+        sh:maxCount 1
+    ], [
+        sh:path js:bodyCanBeEmpty;
+        sh:name "bodyCanBeEmpty";
         sh:datatype xsd:boolean;
         sh:maxCount 1
     ].
