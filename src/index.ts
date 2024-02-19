@@ -1,5 +1,6 @@
 import { Writer } from "@treecg/connector-types";
 import { HttpUtilsError } from "./error";
+import { timeout } from "./promise";
 
 /**
  * Parses an array of headers into a Headers object.
@@ -68,6 +69,8 @@ function statusCodeAccepted(
  * @param writer The writer to stream the data to.
  * @param closeOnEnd Whether to close the writer when the stream ends.
  * @param bodyCanBeEmpty Whether the body can be empty.
+ * @param timeOutMilliseconds Time after which the request is considered
+ * unsuccessful.
  * @throws { HttpUtilsError } May throw an error if `fetch` fails, the headers
  * or status code range is invalid, or if the body is empty while not allowed.
  */
@@ -79,6 +82,7 @@ export async function httpFetch(
     headers: string[] = [],
     acceptStatusCodes: string = "200-300",
     bodyCanBeEmpty: boolean = false,
+    timeOutMilliseconds: number | null = null,
 ) {
     // Sanity check.
     if (!bodyCanBeEmpty && method == "HEAD") {
@@ -97,12 +101,15 @@ export async function httpFetch(
     // therefore we should wait until the rest of the pipeline is set
     // to start pushing down data
     return async () => {
-        const res = await fetch(url, {
-            method,
-            headers: headersObject,
-        }).catch(() => {
-            throw HttpUtilsError.genericFetchError();
-        });
+        const res = await timeout(
+            timeOutMilliseconds,
+            fetch(url, {
+                method,
+                headers: headersObject,
+            }).catch(() => {
+                throw HttpUtilsError.genericFetchError();
+            }),
+        );
 
         // Check if we accept the status code.
         // TODO: this can be optimized since we already went over the status codes.
@@ -128,6 +135,7 @@ export async function httpFetch(
         const reader = res.body.getReader();
         const decoder = new TextDecoder();
 
+        // eslint-disable-next-line no-constant-condition
         while (true) {
             const data = await reader.read().catch(() => {
                 throw HttpUtilsError.connectionError();

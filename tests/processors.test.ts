@@ -107,6 +107,7 @@ describe("HTTP Utils tests", () => {
     });
 });
 
+// eslint-disable-next-line
 function testWriter(arg: any) {
     expect(arg).toBeInstanceOf(Object);
     expect(arg.channel).toBeDefined();

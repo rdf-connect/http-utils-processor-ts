@@ -10,6 +10,7 @@ enum HttpUtilsErrorType {
     GenericFetchError,
     IllegalParameters,
     ConnectionError,
+    TimeOutError,
 }
 
 /**
@@ -70,6 +71,13 @@ export class HttpUtilsError extends Error {
         return new HttpUtilsError(
             "Connection error",
             HttpUtilsErrorType.ConnectionError,
+        );
+    }
+
+    static timeOutError() {
+        return new HttpUtilsError(
+            "Request exceeded time limit",
+            HttpUtilsErrorType.TimeOutError,
         );
     }
 }
