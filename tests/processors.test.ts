@@ -55,6 +55,34 @@ describe("HTTP Utils tests", () => {
 
         await checkProc(env.file, env.func);
     });
+
+    test("js:HttpFetch requires a url", async () => {
+        const proc = `
+            [ ] a js:HttpFetch; 
+                js:method "GET";
+                js:headers "content-type: text/plain", "accept: text/plain";
+                js:writer <jw>;
+                js:closeOnEnd true.
+        `;
+
+        const source: Source = {
+            value: pipeline + proc,
+            baseIRI,
+            type: "memory",
+        }
+
+        const { processors, quads, shapes: config } = await extractProcessors(source);
+        const env = processors.find((x) => x.ty.value.endsWith("HttpFetch"))!;
+        expect(env).toBeDefined();
+
+        // An error must be thrown, since the url is missing.
+        try {
+            extractSteps(env, quads, config);
+            expect(false).toBeTruthy(); // Since rejects.toThrow doesn't work.
+        } catch (e) {
+            expect(e).toEqual("nope");
+        }
+    });
 });
 
 function testWriter(arg: any) {
