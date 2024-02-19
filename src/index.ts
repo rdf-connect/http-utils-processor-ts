@@ -124,7 +124,7 @@ export async function httpFetch(
         const decoder = new TextDecoder();
 
         while (true) {
-            let data = await reader.read().catch(() => {
+            const data = await reader.read().catch(() => {
                 throw HttpUtilsError.connectionError();
             });
 

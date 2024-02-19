@@ -71,7 +71,7 @@ describe("HTTP Utils tests", () => {
             value: pipeline + proc,
             baseIRI,
             type: "memory",
-        }
+        };
 
         const { processors, quads, shapes: config } = await extractProcessors(source);
         const env = processors.find((x) => x.ty.value.endsWith("HttpFetch"))!;

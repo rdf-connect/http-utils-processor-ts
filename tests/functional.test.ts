@@ -99,7 +99,7 @@ describe("Functional tests for the httpFetch Connector Architecture function", (
         );
 
         expect(func()).rejects.toThrow(HttpUtilsError.statusCodeNotAccepted(200));
-    })
+    });
 
     test("Explicitly accepted status - range", async () => {
         const writeStream = new SimpleStream<Buffer>();
@@ -145,25 +145,25 @@ describe("Functional tests for the httpFetch Connector Architecture function", (
     });
 
     test("Illegal status range should throw error", async () => {
-       expect(httpFetch(
-           `${server.url.toString()}?status=500`,
-           "GET",
-           new SimpleStream<Buffer>(),
-           true,
-           ["Content-Type: text/plain", "Accept: text/plain"],
-           "2oo-3oo",
-       )).rejects.toThrow(HttpUtilsError.invalidStatusCodeRange());
+        expect(httpFetch(
+            `${server.url.toString()}?status=500`,
+            "GET",
+            new SimpleStream<Buffer>(),
+            true,
+            ["Content-Type: text/plain", "Accept: text/plain"],
+            "2oo-3oo",
+        )).rejects.toThrow(HttpUtilsError.invalidStatusCodeRange());
     });
 
     test("Empty body throws error", async () => {
-       const func = await httpFetch(
-           `${server.url.toString()}?body=empty`,
-           "GET",
-           new SimpleStream<Buffer>(),
-           true,
-       );
+        const func = await httpFetch(
+            `${server.url.toString()}?body=empty`,
+            "GET",
+            new SimpleStream<Buffer>(),
+            true,
+        );
 
-       expect(func).toThrow(HttpUtilsError.noBodyInResponse());
+        expect(func).toThrow(HttpUtilsError.noBodyInResponse());
     });
 
     test("Cannot combine HEAD method and bodyCanBeEmpty", async () => {
