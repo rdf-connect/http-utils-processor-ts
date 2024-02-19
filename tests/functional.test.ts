@@ -9,11 +9,21 @@ describe("Functional tests for the httpFetch Connector Architecture function", (
     // since we cannot simply use `expect` inside the `fetch` function, so we
     // pass the required values to the client using the response body.
     const server = Bun.serve({
-        fetch(req) {
+        async fetch(req) {
             const requestUrl = new URL(req.url);
             const bodyQuery = requestUrl.searchParams.get("body");
             const statusQuery = requestUrl.searchParams.get("status");
             const status = statusQuery ? Number(statusQuery) : 200;
+            const timeoutQuery = requestUrl.searchParams.get("timeout");
+
+            // If a timeout is request, simply wait for the given time.
+            if (timeoutQuery) {
+                const timeout = Number(timeoutQuery);
+                if (Number.isNaN(timeout)) {
+                    throw Error("Invalid timeout");
+                }
+                await new Promise((resolve) => setTimeout(resolve, timeout));
+            }
 
             // Make sure that the request is valid, as a sanity check.
             if (Number.isNaN(status)) {
@@ -216,5 +226,21 @@ describe("Functional tests for the httpFetch Connector Architecture function", (
                 }),
             ),
         ).resolves.toBeTruthy();
+    });
+
+    test("Maximum timeout results in error.", async () => {
+        // Await and execute returned function of processor.
+        const func = await httpFetch(
+            `${server.url.toString()}?timeout=500`,
+            "GET",
+            new SimpleStream(),
+            true,
+            ["Content-Type: text/plain", "Accept: text/plain"],
+            "200-300",
+            true,
+            100,
+        );
+
+        return expect(func()).rejects.toThrow(HttpUtilsError.timeOutError());
     });
 });
