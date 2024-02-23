@@ -21,6 +21,8 @@ export async function timeout<T>(
     // Rejects after `ms` milliseconds.
     const timeoutPromise = new Promise((_, reject) => {
         timeoutHandle = setTimeout(() => reject(), ms);
+    }).catch(() => {
+        throw "timeout";
     });
 
     // The only way we get a result is if the original promise resolves, since

@@ -2,6 +2,7 @@ import { Writer } from "@treecg/connector-types";
 import { HttpUtilsError } from "./error";
 import { timeout } from "./promise";
 import { parseHeaders, statusCodeAccepted } from "./util";
+import { Auth } from "./auth";
 
 /**
  * Fetches data from a HTTP endpoint and streams it to a writer.
@@ -17,6 +18,8 @@ import { parseHeaders, statusCodeAccepted } from "./util";
  * @param bodyCanBeEmpty Whether the body can be empty.
  * @param timeOutMilliseconds Time after which the request is considered
  * unsuccessful.
+ * @param auth An object containing the username and password for basic
+ * http authentication.
  * @throws { HttpUtilsError } May throw an error if `fetch` fails, the headers
  * or status code range is invalid, or if the body is empty while not allowed.
  */
@@ -29,6 +32,7 @@ export async function httpFetch(
     acceptStatusCodes: string[] = ["200-300"],
     bodyCanBeEmpty: boolean = false,
     timeOutMilliseconds: number | null = null,
+    auth: Auth | null = null,
 ) {
     // Sanity check.
     if (!bodyCanBeEmpty && method == "HEAD") {
@@ -43,6 +47,12 @@ export async function httpFetch(
     // Check validity of the status code range. Will throw error if invalid.
     statusCodeAccepted(0, acceptStatusCodes);
 
+    // Add basic auth header supplied. Note that we might only want to do this
+    // when a request returns 401 for security reasons.
+    if (auth) {
+        auth.authorize(headersObject);
+    }
+
     // This is a source processor (i.e, the first processor in a pipeline),
     // therefore we should wait until the rest of the pipeline is set
     // to start pushing down data
@@ -51,20 +61,30 @@ export async function httpFetch(
         const fetchPromise = fetch(url, {
             method,
             headers: headersObject,
-        }).catch(() => {
-            throw HttpUtilsError.genericFetchError();
+        }).catch((err) => {
+            throw HttpUtilsError.genericFetchError(err);
         });
 
         // Wrap the fetch promise in a timeout.
         const res = await timeout(timeOutMilliseconds, fetchPromise).catch(
-            () => {
-                throw HttpUtilsError.timeOutError();
+            (err) => {
+                if (err === "timeout") {
+                    throw HttpUtilsError.timeOutError(timeOutMilliseconds);
+                } else {
+                    throw err;
+                }
             },
         );
 
         // Check if we accept the status code.
         if (!statusCodeAccepted(res.status, acceptStatusCodes)) {
-            throw HttpUtilsError.statusCodeNotAccepted(res.status);
+            if (res.status == 401 && auth) {
+                throw HttpUtilsError.credentialIssue();
+            } else if (res.status == 401) {
+                throw HttpUtilsError.unauthorizedError();
+            } else {
+                throw HttpUtilsError.statusCodeNotAccepted(res.status);
+            }
         }
 
         // Special case if the body is empty. We either throw an error or exit

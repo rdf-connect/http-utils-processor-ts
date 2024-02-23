@@ -3,6 +3,7 @@ import { SimpleStream } from "@ajuvercr/js-runner";
 import { httpFetch } from "../src";
 import { HttpUtilsError } from "../src/error";
 import { Fetch } from "./util/fetch";
+import { Auth, HttpBasicAuth } from "../src/auth";
 
 interface HttpFetchParams {
     params?: string;
@@ -13,6 +14,7 @@ interface HttpFetchParams {
     acceptStatusCodes?: string[];
     timeout?: number;
     closeOnEnd?: boolean;
+    auth?: Auth;
 }
 
 function HttpFetch(params: HttpFetchParams) {
@@ -25,10 +27,13 @@ function HttpFetch(params: HttpFetchParams) {
         params.acceptStatusCodes ?? ["200-300"],
         params.bodyCanBeEmpty ?? false,
         params.timeout,
+        params.auth,
     );
 }
 
 const mockFetch = new Fetch();
+const credentials = new HttpBasicAuth("admin", "password");
+const invalidCredentials = new HttpBasicAuth("admin", "invalid");
 
 beforeAll(() => {
     mockFetch.default();
@@ -73,6 +78,30 @@ describe("httpFetch - sanity checks", () => {
 });
 
 describe("httpFetch - runtime", () => {
+    test("basic auth - successful", async () => {
+        mockFetch.set({ credentials });
+        const func = await HttpFetch({ auth: credentials });
+        await func();
+    });
+
+    test("basic auth - invalid credentials", async () => {
+        mockFetch.set({ credentials });
+        const func = await HttpFetch({ auth: invalidCredentials });
+        return expect(func()).rejects.toThrow(HttpUtilsError.credentialIssue());
+    });
+
+    test("basic auth - no credentials", async () => {
+        mockFetch.set({ credentials });
+
+        const func = await HttpFetch({
+            headers: ["Content-Type: text/plain", "Accept: text/plain"],
+        });
+
+        return expect(func()).rejects.toThrow(
+            HttpUtilsError.unauthorizedError(),
+        );
+    });
+
     test("status code - unsuccessful default", async () => {
         mockFetch.set({ status: 500 });
         const func = await HttpFetch({});
@@ -157,6 +186,6 @@ describe("httpFetch - runtime", () => {
             timeout: 100,
         });
 
-        return expect(func()).rejects.toThrow(HttpUtilsError.timeOutError());
+        return expect(func()).rejects.toThrow(HttpUtilsError.timeOutError(100));
     });
 });

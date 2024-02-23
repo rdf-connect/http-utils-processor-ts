@@ -11,6 +11,8 @@ enum HttpUtilsErrorType {
     IllegalParameters,
     ConnectionError,
     TimeOutError,
+    UnauthorizedError,
+    CredentialIssue,
 }
 
 /**
@@ -53,9 +55,9 @@ export class HttpUtilsError extends Error {
         );
     }
 
-    static genericFetchError() {
+    static genericFetchError(error: Error) {
         return new HttpUtilsError(
-            "Generic fetch error",
+            `Generic fetch error: ${error.message}`,
             HttpUtilsErrorType.GenericFetchError,
         );
     }
@@ -74,10 +76,24 @@ export class HttpUtilsError extends Error {
         );
     }
 
-    static timeOutError() {
+    static timeOutError(ms: number | null) {
         return new HttpUtilsError(
-            "Request exceeded time limit",
+            `Request exceeded time limit of ${ms} ms`,
             HttpUtilsErrorType.TimeOutError,
+        );
+    }
+
+    static unauthorizedError() {
+        return new HttpUtilsError(
+            "Unauthorized",
+            HttpUtilsErrorType.UnauthorizedError,
+        );
+    }
+
+    static credentialIssue() {
+        return new HttpUtilsError(
+            "Credentials are invalid or have insufficient access",
+            HttpUtilsErrorType.CredentialIssue,
         );
     }
 }
