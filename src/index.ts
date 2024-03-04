@@ -50,7 +50,7 @@ export async function httpFetch(
     // Add basic auth header supplied. Note that we might only want to do this
     // when a request returns 401 for security reasons.
     if (auth) {
-        auth.authorize(headersObject);
+        await auth.authorize(headersObject);
     }
 
     // This is a source processor (i.e, the first processor in a pipeline),

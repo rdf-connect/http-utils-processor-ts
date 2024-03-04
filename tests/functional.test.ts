@@ -32,8 +32,6 @@ function HttpFetch(params: HttpFetchParams) {
 }
 
 const mockFetch = new Fetch();
-const credentials = new HttpBasicAuth("admin", "password");
-const invalidCredentials = new HttpBasicAuth("admin", "invalid");
 
 beforeAll(() => {
     mockFetch.default();
@@ -79,18 +77,22 @@ describe("httpFetch - sanity checks", () => {
 
 describe("httpFetch - runtime", () => {
     test("basic auth - successful", async () => {
+        const credentials = new HttpBasicAuth("admin", "password");
         mockFetch.set({ credentials });
         const func = await HttpFetch({ auth: credentials });
         await func();
     });
 
     test("basic auth - invalid credentials", async () => {
+        const credentials = new HttpBasicAuth("admin", "password");
+        const invalidCredentials = new HttpBasicAuth("admin", "invalid");
         mockFetch.set({ credentials });
         const func = await HttpFetch({ auth: invalidCredentials });
         return expect(func()).rejects.toThrow(HttpUtilsError.credentialIssue());
     });
 
     test("basic auth - no credentials", async () => {
+        const credentials = new HttpBasicAuth("admin", "password");
         mockFetch.set({ credentials });
 
         const func = await HttpFetch({

@@ -1,6 +1,8 @@
 import { jest } from "@jest/globals";
 export import Mock = jest.Mock;
 import { Auth } from "../../src/auth";
+import OAuth2Server from "@node-oauth/oauth2-server";
+import { MockPasswordModel } from "../auth/passwordGrant";
 
 export type FetchArgs = {
     status?: number;
@@ -9,15 +11,34 @@ export type FetchArgs = {
     credentials?: Auth;
 };
 
+export const OAuth2PasswordGrantMock: typeof fetch = (async (_url, options) => {
+    const req = new Request(_url, options);
+    const res = new Response();
+    const authReq = new OAuth2Server.Request(req);
+    const authRes = new OAuth2Server.Response(res);
+    const server = new OAuth2Server({
+        model: new MockPasswordModel(),
+    });
+    await server.authenticate(authReq, authRes);
+    return res;
+}) as typeof fetch;
+
 export class Fetch {
     private fetch: Mock<typeof fetch> = jest.fn(Fetch.build());
 
     private static build(args: FetchArgs = {}): typeof fetch {
-        return (async (_url, options) => {
+        return (async (url: string | Request, options?: RequestInit) => {
+            // If the url is the OAuth2 password grant endpoint, call the mock.
+            if (url === "/auth/oauth2/password-grant") {
+                return OAuth2PasswordGrantMock(url, options);
+            }
+
+            // Insert timeout if needed.
             await new Promise((resolve) =>
                 setTimeout(resolve, args.timeout ?? 0),
             );
 
+            // If credentials are supplied, check them.
             if (args.credentials) {
                 const headers = options?.headers as Headers;
                 const header = headers.get(args.credentials.headerKey);
@@ -28,10 +49,11 @@ export class Fetch {
                 }
             }
 
+            // Return response with requested body and status.
             return new Response(args.nullBody ? null : "Hello, World!", {
                 status: args.status ?? 200,
             });
-        }) satisfies typeof fetch;
+        }) as typeof fetch;
     }
 
     public constructor() {
