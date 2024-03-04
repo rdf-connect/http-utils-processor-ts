@@ -1,35 +1,7 @@
 import { describe, expect, test, beforeEach, beforeAll } from "@jest/globals";
-import { SimpleStream } from "@ajuvercr/js-runner";
-import { httpFetch } from "../src";
 import { HttpUtilsError } from "../src/error";
 import { Fetch } from "./util/fetch";
-import { Auth, HttpBasicAuth } from "../src/auth";
-
-interface HttpFetchParams {
-    params?: string;
-    method?: string;
-    writeStream?: SimpleStream<Buffer>;
-    bodyCanBeEmpty?: boolean;
-    headers?: string[];
-    acceptStatusCodes?: string[];
-    timeout?: number;
-    closeOnEnd?: boolean;
-    auth?: Auth;
-}
-
-function HttpFetch(params: HttpFetchParams) {
-    return httpFetch(
-        `https://example.com/?${params.params ?? ""}`,
-        params.method ?? "GET",
-        params.writeStream ?? new SimpleStream<Buffer>(),
-        params.closeOnEnd ?? true,
-        params.headers ?? [],
-        params.acceptStatusCodes ?? ["200-300"],
-        params.bodyCanBeEmpty ?? false,
-        params.timeout,
-        params.auth,
-    );
-}
+import { HttpFetch } from ".";
 
 const mockFetch = new Fetch();
 
@@ -76,34 +48,6 @@ describe("httpFetch - sanity checks", () => {
 });
 
 describe("httpFetch - runtime", () => {
-    test("basic auth - successful", async () => {
-        const credentials = new HttpBasicAuth("admin", "password");
-        mockFetch.set({ credentials });
-        const func = await HttpFetch({ auth: credentials });
-        await func();
-    });
-
-    test("basic auth - invalid credentials", async () => {
-        const credentials = new HttpBasicAuth("admin", "password");
-        const invalidCredentials = new HttpBasicAuth("admin", "invalid");
-        mockFetch.set({ credentials });
-        const func = await HttpFetch({ auth: invalidCredentials });
-        return expect(func()).rejects.toThrow(HttpUtilsError.credentialIssue());
-    });
-
-    test("basic auth - no credentials", async () => {
-        const credentials = new HttpBasicAuth("admin", "password");
-        mockFetch.set({ credentials });
-
-        const func = await HttpFetch({
-            headers: ["Content-Type: text/plain", "Accept: text/plain"],
-        });
-
-        return expect(func()).rejects.toThrow(
-            HttpUtilsError.unauthorizedError(),
-        );
-    });
-
     test("status code - unsuccessful default", async () => {
         mockFetch.set({ status: 500 });
         const func = await HttpFetch({});
