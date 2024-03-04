@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
-import { parseHeaders, statusCodeAccepted } from "../src/util";
+import { statusCodeAccepted } from "../src/util/status";
 import { HttpUtilsError } from "../src/error";
+import { parseHeaders } from "../src/util/headers";
 
 describe("parseHeaders", () => {
     test("empty", () => {

@@ -1,8 +1,9 @@
 import { Writer } from "@treecg/connector-types";
 import { HttpUtilsError } from "./error";
-import { timeout } from "./promise";
-import { parseHeaders, statusCodeAccepted } from "./util";
+import { timeout } from "./util/timeout";
+import { statusCodeAccepted } from "./util/status";
 import { Auth } from "./auth";
+import { parseHeaders } from "./util/headers";
 
 /**
  * Fetches data from a HTTP endpoint and streams it to a writer.
