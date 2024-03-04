@@ -11,8 +11,7 @@ export type FetchArgs = {
     credentials?: Auth;
 };
 
-export const OAuth2PasswordGrantMock: typeof fetch = (async (_url, options) => {
-    const req = new Request(_url, options);
+export const OAuth2PasswordGrantMock: typeof fetch = (async (req: Request) => {
     const res = new Response();
     const authReq = new OAuth2Server.Request(req);
     const authRes = new OAuth2Server.Response(res);
@@ -27,10 +26,10 @@ export class Fetch {
     private fetch: Mock<typeof fetch> = jest.fn(Fetch.build());
 
     private static build(args: FetchArgs = {}): typeof fetch {
-        return (async (url: string | Request, options?: RequestInit) => {
+        return (async (req: Request) => {
             // If the url is the OAuth2 password grant endpoint, call the mock.
-            if (url === "/auth/oauth2/password-grant") {
-                return OAuth2PasswordGrantMock(url, options);
+            if (req.url === "/auth/oauth2/password-grant") {
+                return OAuth2PasswordGrantMock(req);
             }
 
             // Insert timeout if needed.
@@ -39,14 +38,10 @@ export class Fetch {
             );
 
             // If credentials are supplied, check them.
-            if (args.credentials) {
-                const headers = options?.headers as Headers;
-                const header = headers.get(args.credentials.headerKey);
-                if (!args.credentials.check(header ?? "")) {
-                    return new Response("Unauthorized", {
-                        status: 401,
-                    });
-                }
+            if (args.credentials && !args.credentials.check(req)) {
+                return new Response("Unauthorized", {
+                    status: 401,
+                });
             }
 
             // Return response with requested body and status.

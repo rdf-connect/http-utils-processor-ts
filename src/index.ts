@@ -41,16 +41,19 @@ export async function httpFetch(
         );
     }
 
-    // Parse headers beforehand.
-    const headersObject = parseHeaders(headers);
-
     // Check validity of the status code range. Will throw error if invalid.
     statusCodeAccepted(0, acceptStatusCodes);
+
+    // Create request object, throws error if invalid.
+    const req = new Request(url, {
+        method,
+        headers: parseHeaders(headers),
+    });
 
     // Add basic auth header supplied. Note that we might only want to do this
     // when a request returns 401 for security reasons.
     if (auth) {
-        await auth.authorize(headersObject);
+        await auth.authorize(req);
     }
 
     // This is a source processor (i.e, the first processor in a pipeline),
@@ -58,10 +61,7 @@ export async function httpFetch(
     // to start pushing down data
     return async () => {
         // Initialize the fetch promise.
-        const fetchPromise = fetch(url, {
-            method,
-            headers: headersObject,
-        }).catch((err) => {
+        const fetchPromise = fetch(req).catch((err) => {
             throw HttpUtilsError.genericFetchError(err);
         });
 

@@ -149,16 +149,15 @@ describe("httpFetch - runtime", () => {
 
         await func();
 
-        const fetchArgs = mockFetch.getArgs()[1]!;
-        expect(fetchArgs).toBeDefined();
+        const req = mockFetch.getArgs()[0]! as Request;
+        expect(req).toBeDefined();
 
         // Check varia.
-        expect(fetchArgs.method).toEqual("GET");
+        expect(req.method).toEqual("GET");
 
         // Check headers.
-        const headers = fetchArgs.headers as Headers;
-        expect(headers.get("content-type")).toEqual("text/plain");
-        expect(headers.get("accept")).toEqual("text/plain");
+        expect(req.headers.get("content-type")).toEqual("text/plain");
+        expect(req.headers.get("accept")).toEqual("text/plain");
     });
 
     test("empty body - error", async () => {

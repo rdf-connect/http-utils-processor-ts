@@ -4,16 +4,13 @@ export enum AuthType {
 
 export interface Auth {
     readonly type: AuthType;
-    readonly headerKey: string;
-    authorize(headers: Headers): Promise<void>;
-    check(header: string): boolean;
+    authorize(req: Request): Promise<void>;
+    check(req: Request): boolean;
 }
 
 export class HttpBasicAuth implements Auth {
     private readonly username: string;
     private readonly password: string;
-
-    public readonly headerKey: string = "Authorization";
     public readonly type: AuthType = AuthType.HttpBasicAuth;
 
     constructor(username: string, password: string) {
@@ -28,11 +25,11 @@ export class HttpBasicAuth implements Auth {
         );
     }
 
-    async authorize(headers: Headers): Promise<void> {
-        headers.set("Authorization", this.encode());
+    async authorize(req: Request): Promise<void> {
+        req.headers.set("Authorization", this.encode());
     }
 
-    check(header: string): boolean {
-        return header == this.encode();
+    check(req: Request): boolean {
+        return req.headers.get("Authorization") == this.encode();
     }
 }
