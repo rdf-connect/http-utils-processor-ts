@@ -53,13 +53,13 @@ export class OAuth2PasswordAuth implements Auth {
     async authorize(req: Request): Promise<void> {
         const authRequest = new Request(this.endpoint, {
             body: new URLSearchParams({
-                'grant_type': 'password',
-                'username': this.username,
-                'password': this.password,
+                grant_type: "password",
+                username: this.username,
+                password: this.password,
             }),
-            method: 'POST',
+            method: "POST",
             headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
+                "Content-Type": "application/x-www-form-urlencoded",
             },
         });
 
@@ -78,7 +78,7 @@ export class OAuth2PasswordAuth implements Auth {
             throw HttpUtilsError.unauthorizedError();
         }
 
-        req.headers.set('Authorization', `Bearer ${authData.access_token}`);
+        req.headers.set("Authorization", `Bearer ${authData.access_token}`);
     }
 
     check(req: Request): boolean {

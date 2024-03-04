@@ -1,6 +1,6 @@
-import {beforeAll, beforeEach, describe, test} from "@jest/globals";
-import {OAuth2PasswordAuth} from "../../../src/auth";
-import {Fetch} from "../../util/fetch";
+import { beforeAll, beforeEach, describe, test } from "@jest/globals";
+import { OAuth2PasswordAuth } from "../../../src/auth";
+import { Fetch } from "../../util/fetch";
 import { HttpFetch } from "../..";
 
 const mockFetch = new Fetch();

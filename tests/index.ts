@@ -1,6 +1,6 @@
-import {SimpleStream} from "@ajuvercr/js-runner";
-import {Auth} from "../src/auth";
-import {httpFetch} from "../src";
+import { SimpleStream } from "@ajuvercr/js-runner";
+import { Auth } from "../src/auth";
+import { httpFetch } from "../src";
 
 export interface HttpFetchParams {
     params?: string;

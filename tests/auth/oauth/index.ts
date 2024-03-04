@@ -1,4 +1,4 @@
-import { OAuth2Server } from 'oauth2-mock-server';
+import { OAuth2Server } from "oauth2-mock-server";
 import * as http from "http";
 
 export class OAuth2MockServer extends OAuth2Server {
