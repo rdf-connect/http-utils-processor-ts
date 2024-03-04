@@ -3,7 +3,7 @@ import { Auth } from "../src/auth";
 import { httpFetch } from "../src";
 
 export interface HttpFetchParams {
-    params?: string;
+    url?: string;
     method?: string;
     writeStream?: SimpleStream<Buffer>;
     bodyCanBeEmpty?: boolean;
@@ -16,7 +16,7 @@ export interface HttpFetchParams {
 
 export function HttpFetch(params: HttpFetchParams) {
     return httpFetch(
-        `https://example.com/?${params.params ?? ""}`,
+        params.url ?? "http://example.com",
         params.method ?? "GET",
         params.writeStream ?? new SimpleStream<Buffer>(),
         params.closeOnEnd ?? true,

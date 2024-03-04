@@ -13,6 +13,7 @@ enum HttpUtilsErrorType {
     TimeOutError,
     UnauthorizedError,
     CredentialIssue,
+    OAuth2TokenError,
 }
 
 /**
@@ -94,6 +95,13 @@ export class HttpUtilsError extends Error {
         return new HttpUtilsError(
             "Credentials are invalid or have insufficient access",
             HttpUtilsErrorType.CredentialIssue,
+        );
+    }
+
+    static oAuth2TokenError(code: number) {
+        return new HttpUtilsError(
+            `An issue occurred while retrieving the OAuth2 token. Response with status code ${code}.`,
+            HttpUtilsErrorType.OAuth2TokenError,
         );
     }
 }

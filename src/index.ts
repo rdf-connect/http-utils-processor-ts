@@ -50,16 +50,16 @@ export async function httpFetch(
         headers: parseHeaders(headers),
     });
 
-    // Add basic auth header supplied. Note that we might only want to do this
-    // when a request returns 401 for security reasons.
-    if (auth) {
-        await auth.authorize(req);
-    }
-
     // This is a source processor (i.e, the first processor in a pipeline),
     // therefore we should wait until the rest of the pipeline is set
     // to start pushing down data
     return async () => {
+        // Add basic auth header supplied. Note that we might only want to do this
+        // when a request returns 401 for security reasons.
+        if (auth) {
+            await auth.authorize(req);
+        }
+
         // Initialize the fetch promise.
         const fetchPromise = fetch(req).catch((err) => {
             throw HttpUtilsError.genericFetchError(err);

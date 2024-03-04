@@ -1,4 +1,11 @@
-import { describe, expect, test, beforeEach, beforeAll } from "@jest/globals";
+import {
+    describe,
+    expect,
+    test,
+    beforeEach,
+    beforeAll,
+    afterAll,
+} from "@jest/globals";
 import { HttpUtilsError } from "../../src/error";
 import { Fetch } from "../util/fetch";
 import { HttpBasicAuth } from "../../src/auth";
@@ -13,6 +20,10 @@ beforeAll(() => {
 beforeEach(() => {
     mockFetch.clear();
     mockFetch.default();
+});
+
+afterAll(() => {
+    mockFetch.restore();
 });
 
 describe("basic auth", () => {

@@ -11,6 +11,7 @@ export type FetchArgs = {
 
 export class Fetch {
     private fetch: Mock<typeof fetch> = jest.fn(Fetch.build());
+    private readonly original: typeof fetch;
 
     private static build(args: FetchArgs = {}): typeof fetch {
         return (async (req: Request) => {
@@ -34,6 +35,7 @@ export class Fetch {
     }
 
     public constructor() {
+        this.original = global.fetch;
         global.fetch = this.fetch;
     }
 
@@ -57,6 +59,11 @@ export class Fetch {
 
     public clear(): Fetch {
         this.fetch.mockClear();
+        return this;
+    }
+
+    public restore(): Fetch {
+        global.fetch = this.original;
         return this;
     }
 }

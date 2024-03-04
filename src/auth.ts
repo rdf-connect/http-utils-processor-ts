@@ -67,7 +67,7 @@ export class OAuth2PasswordAuth implements Auth {
 
         // Check if request was successful.
         if (!authResponse.ok) {
-            throw HttpUtilsError.unauthorizedError();
+            throw HttpUtilsError.oAuth2TokenError(authResponse.status);
         }
 
         // Append the access token to the original request.
@@ -81,7 +81,7 @@ export class OAuth2PasswordAuth implements Auth {
         req.headers.set("Authorization", `Bearer ${authData.access_token}`);
     }
 
-    check(req: Request): boolean {
+    check(): boolean {
         throw new Error("Method not implemented.");
     }
 }
