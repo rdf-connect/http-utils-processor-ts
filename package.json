@@ -1,41 +1,45 @@
 {
-    "name": "http-utils-processor-ts",
-    "version": "0.0.1",
-    "description": "HTTP util functions to be used within the Connector Architecture",
-    "type": "module",
-    "scripts": {
-        "build": "tsc",
-        "test": "bun test",
-        "pretest": "bun run build"
-    },
-    "files": [
-        "lib/**/*",
-        "./processors.ttl"
-    ],
-    "keywords": [
-        "HTTP",
-        "Connector Architecture"
-    ],
-    "repository": {
-        "type": "git",
-        "url": "git+https://gitlab.ilabt.imec.be/KNoWS/projects/connector-architecture/http-utils-processor-ts.git"
-    },
-    "author": "Jens Pots",
-    "devDependencies": {
-        "@ajuvercr/js-runner": "^0.1.14",
-        "@jest/globals": "^29.7.0",
-        "@types/bun": "^1.0.5",
-        "@typescript-eslint/eslint-plugin": "^7.0.1",
-        "@typescript-eslint/parser": "^7.0.1",
-        "eslint": "^8.56.0",
-        "eslint-config-prettier": "^9.1.0",
-        "prettier": "3.2.5"
-    },
-    "peerDependencies": {
-        "typescript": "^5.0.0"
-    },
-    "dependencies": {
-        "@node-oauth/oauth2-server": "^5.1.0",
-        "@treecg/connector-types": "^1.2.1"
-    }
+  "name": "http-utils-processor-ts",
+  "version": "0.0.1",
+  "description": "HTTP util functions to be used within the Connector Architecture",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "test": "bun test",
+    "pretest": "bun run build"
+  },
+  "files": [
+    "lib/**/*",
+    "./processors.ttl"
+  ],
+  "keywords": [
+    "HTTP",
+    "Connector Architecture"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://gitlab.ilabt.imec.be/KNoWS/projects/connector-architecture/http-utils-processor-ts.git"
+  },
+  "author": "Jens Pots",
+  "devDependencies": {
+    "@ajuvercr/js-runner": "^0.1.14",
+    "@jest/globals": "^29.7.0",
+    "@types/bun": "^1.0.5",
+    "@types/supertest": "^6.0.2",
+    "@typescript-eslint/eslint-plugin": "^7.0.1",
+    "@typescript-eslint/parser": "^7.0.1",
+    "eslint": "^8.56.0",
+    "eslint-config-prettier": "^9.1.0",
+    "oauth2-mock-server": "^7.1.1",
+    "prettier": "3.2.5",
+    "supertest": "^6.3.4"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@node-oauth/express-oauth-server": "^4.0.0",
+    "@node-oauth/oauth2-server": "^5.1.0",
+    "@treecg/connector-types": "^1.2.1"
+  }
 }
