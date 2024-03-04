@@ -8,7 +8,7 @@ import {
 } from "@jest/globals";
 import { HttpUtilsError } from "../../src/error";
 import { Fetch } from "../util/fetch";
-import { HttpBasicAuth } from "../../src/auth";
+import { HttpBasicAuth } from "../../src/auth/basic";
 import { HttpFetch } from "..";
 
 const mockFetch = new Fetch();
@@ -26,7 +26,7 @@ afterAll(() => {
     mockFetch.restore();
 });
 
-describe("basic auth", () => {
+describe("basic.ts auth", () => {
     test("successful", async () => {
         const credentials = new HttpBasicAuth("admin", "password");
         mockFetch.set({ credentials });

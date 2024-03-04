@@ -18,7 +18,7 @@ import { Auth } from "./auth";
  * @param bodyCanBeEmpty Whether the body can be empty.
  * @param timeOutMilliseconds Time after which the request is considered
  * unsuccessful.
- * @param auth An object containing the username and password for basic
+ * @param auth An object containing the username and password for basic.ts
  * http authentication.
  * @throws { HttpUtilsError } May throw an error if `fetch` fails, the headers
  * or status code range is invalid, or if the body is empty while not allowed.
@@ -54,7 +54,7 @@ export async function httpFetch(
     // therefore we should wait until the rest of the pipeline is set
     // to start pushing down data
     return async () => {
-        // Add basic auth header supplied. Note that we might only want to do this
+        // Add basic.ts auth header supplied. Note that we might only want to do this
         // when a request returns 401 for security reasons.
         if (auth) {
             await auth.authorize(req);

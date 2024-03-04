@@ -1,8 +1,9 @@
 import { describe, test, expect } from "@jest/globals";
-import { HttpBasicAuth, OAuth2PasswordAuth } from "../../src/auth";
 import { HttpFetch } from "../index";
 import { SimpleStream } from "@ajuvercr/js-runner";
 import { HttpUtilsError } from "../../src/error";
+import { OAuth2PasswordAuth } from "../../src/auth/oauth/password";
+import { HttpBasicAuth } from "../../src/auth/basic";
 
 describe("Real world datasets", () => {
     test(
@@ -136,27 +137,24 @@ describe("Real world datasets", () => {
         10 * 1000,
     );
 
-    test(
-        "BlueBike - success",
-        async () => {
-            // Output stream which we'll check for correctness.
-            const writeStream = new SimpleStream<Buffer>();
+    test("BlueBike - success", async () => {
+        // Output stream which we'll check for correctness.
+        const writeStream = new SimpleStream<Buffer>();
 
-            let output = "";
-            writeStream
-                .data((data) => {
-                    output += data;
-                })
-                .on("end", () => {
-                    expect(JSON.parse(output).length).toBeGreaterThan(100);
-                });
-
-            const func = await HttpFetch({
-                url: "https://api.blue-bike.be/pub/location",
-                writeStream,
+        let output = "";
+        writeStream
+            .data((data) => {
+                output += data;
+            })
+            .on("end", () => {
+                expect(JSON.parse(output).length).toBeGreaterThan(100);
             });
 
-            await func();
-        }
-    )
+        const func = await HttpFetch({
+            url: "https://api.blue-bike.be/pub/location",
+            writeStream,
+        });
+
+        await func();
+    });
 });
