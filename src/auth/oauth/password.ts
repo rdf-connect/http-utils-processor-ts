@@ -1,12 +1,10 @@
 import { HttpUtilsError } from "../../error";
-import { Auth, AuthType } from "../index";
+import { Auth } from "../index";
 
 export class OAuth2PasswordAuth implements Auth {
     private readonly username: string;
     private readonly password: string;
     private readonly endpoint: string;
-
-    public readonly type: AuthType = AuthType.OAuth2PasswordAuth;
 
     constructor(username: string, password: string, endpoint: string) {
         this.username = username;

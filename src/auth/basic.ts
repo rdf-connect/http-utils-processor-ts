@@ -1,9 +1,8 @@
-import { Auth, AuthType } from ".";
+import { Auth } from ".";
 
 export class HttpBasicAuth implements Auth {
     private readonly username: string;
     private readonly password: string;
-    public readonly type: AuthType = AuthType.HttpBasicAuth;
 
     constructor(username: string, password: string) {
         this.username = username;
