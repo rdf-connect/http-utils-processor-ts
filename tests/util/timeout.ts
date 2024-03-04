@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { timeout } from "../src/util/timeout";
+import { timeout } from "../../src/util/timeout";
 
 /**
  * A simple promise that resolves after `ms` milliseconds.

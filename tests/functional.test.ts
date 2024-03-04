@@ -7,7 +7,7 @@ import {
     afterAll,
 } from "@jest/globals";
 import { HttpUtilsError } from "../src/error";
-import { Fetch } from "./util/fetch";
+import { Fetch } from "./fetch";
 import { HttpFetch } from ".";
 
 const mockFetch = new Fetch();

@@ -1,6 +1,6 @@
 import { jest } from "@jest/globals";
 export import Mock = jest.Mock;
-import { Auth } from "../../src/auth";
+import { Auth } from "../src/auth";
 
 export type FetchArgs = {
     status?: number;
