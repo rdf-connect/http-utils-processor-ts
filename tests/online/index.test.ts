@@ -1,14 +1,14 @@
 import { describe, test, expect } from "@jest/globals";
-import { HttpFetch } from "../index";
 import { SimpleStream } from "@ajuvercr/js-runner";
 import { HttpUtilsError } from "../../src/error";
-import { OAuth2PasswordAuth } from "../../src/auth/oauth/password";
-import { HttpBasicAuth } from "../../src/auth/basic";
+import { httpFetch } from "../../src";
+import { writer } from "../writer";
 
 describe("Real world datasets", () => {
     test(
         "RINF - success",
         async () => {
+            // Retrieve credentials.
             const username = process.env["RINF_USERNAME"];
             const password = process.env["RINF_PASSWORD"];
 
@@ -16,33 +16,27 @@ describe("Real world datasets", () => {
                 throw new Error("RINF_USERNAME and RINF_PASSWORD must be set");
             }
 
-            const credentials = new OAuth2PasswordAuth(
-                username,
-                password,
-                "https://rinf.era.europa.eu/api/token",
-            );
-
             // Output stream which we'll check for correctness.
-            const writeStream = new SimpleStream<Buffer>();
-
-            let output = "";
-            writeStream
-                .data((data) => {
-                    output += data;
-                })
-                .on("end", () => {
-                    const json = JSON.parse(output);
-                    expect(json["@odata.context"]).toEqual(
-                        "https://rinf.era.europa.eu/API/$metadata#DatasetImports",
-                    );
-                });
+            const writeStream = writer((output) => {
+                const json = JSON.parse(output);
+                expect(json["@odata.context"]).toEqual(
+                    "https://rinf.era.europa.eu/API/$metadata#DatasetImports",
+                );
+            });
 
             // Execute the function.
-            const func = await HttpFetch({
-                url: "https://rinf.era.europa.eu/api/DatasetImports",
-                auth: credentials,
+            const func = await httpFetch(
+                "https://rinf.era.europa.eu/api/DatasetImports",
                 writeStream,
-            });
+                {
+                    auth: {
+                        type: "oauth2",
+                        username,
+                        password,
+                        endpoint: "https://rinf.era.europa.eu/api/token",
+                    },
+                },
+            );
 
             await func();
         },
@@ -52,9 +46,10 @@ describe("Real world datasets", () => {
     test(
         "RINF - missing credentials",
         async () => {
-            const func = await HttpFetch({
-                url: "https://rinf.era.europa.eu/api/DatasetImports",
-            });
+            const func = await httpFetch(
+                "https://rinf.era.europa.eu/api/DatasetImports",
+                new SimpleStream<Buffer>(),
+            );
 
             return expect(func()).rejects.toThrow(
                 HttpUtilsError.unauthorizedError(),
@@ -66,16 +61,18 @@ describe("Real world datasets", () => {
     test(
         "RINF - invalid credentials",
         async () => {
-            const credentials = new OAuth2PasswordAuth(
-                "invalid",
-                "invalid",
-                "https://rinf.era.europa.eu/api/token",
+            const func = await httpFetch(
+                "https://rinf.era.europa.eu/api/DatasetImports",
+                new SimpleStream<Buffer>(),
+                {
+                    auth: {
+                        type: "oauth2",
+                        username: "invalid",
+                        password: "invalid",
+                        endpoint: "https://rinf.era.europa.eu/api/token",
+                    },
+                },
             );
-
-            const func = await HttpFetch({
-                url: "https://rinf.era.europa.eu/api/DatasetImports",
-                auth: credentials,
-            });
 
             return expect(func()).rejects.toThrow(
                 HttpUtilsError.oAuth2TokenError(400),
@@ -96,14 +93,19 @@ describe("Real world datasets", () => {
                 );
             }
 
-            const credentials = new HttpBasicAuth(username, password);
+            const func = await httpFetch(
+                "https://www.marinespecies.org/download/",
+                new SimpleStream<string>(),
+                {
+                    auth: {
+                        type: "basic",
+                        username,
+                        password,
+                    },
+                },
+            );
 
-            const func = await HttpFetch({
-                url: "https://www.marinespecies.org/download/",
-                auth: credentials,
-            });
-
-            await func();
+            return expect(func()).resolves.toBeUndefined();
         },
         10 * 1000,
     );
@@ -111,9 +113,10 @@ describe("Real world datasets", () => {
     test(
         "WoRMS - missing credentials",
         async () => {
-            const func = await HttpFetch({
-                url: "https://www.marinespecies.org/download/",
-            });
+            const func = await httpFetch(
+                "https://www.marinespecies.org/download/",
+                new SimpleStream<string>(),
+            );
 
             return expect(func()).rejects.toThrow(
                 HttpUtilsError.unauthorizedError(),
@@ -125,10 +128,17 @@ describe("Real world datasets", () => {
     test(
         "WoRMS - invalid credentials",
         async () => {
-            const func = await HttpFetch({
-                url: "https://www.marinespecies.org/download/",
-                auth: new HttpBasicAuth("invalid", "invalid"),
-            });
+            const func = await httpFetch(
+                "https://www.marinespecies.org/download/",
+                new SimpleStream<string>(),
+                {
+                    auth: {
+                        type: "basic",
+                        username: "invalid",
+                        password: "invalid",
+                    },
+                },
+            );
 
             return expect(func()).rejects.toThrow(
                 HttpUtilsError.credentialIssue(),
@@ -138,23 +148,15 @@ describe("Real world datasets", () => {
     );
 
     test("BlueBike - success", async () => {
-        // Output stream which we'll check for correctness.
-        const writeStream = new SimpleStream<Buffer>();
-
-        let output = "";
-        writeStream
-            .data((data) => {
-                output += data;
-            })
-            .on("end", () => {
-                expect(JSON.parse(output).length).toBeGreaterThan(100);
-            });
-
-        const func = await HttpFetch({
-            url: "https://api.blue-bike.be/pub/location",
-            writeStream,
+        const writeStream = writer((output) => {
+            expect(JSON.parse(output).length).toBeGreaterThan(100);
         });
 
-        await func();
+        const func = await httpFetch(
+            "https://api.blue-bike.be/pub/location",
+            writeStream,
+        );
+
+        return expect(func()).resolves.toBeUndefined();
     });
 });

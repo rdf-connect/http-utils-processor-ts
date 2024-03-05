@@ -9,7 +9,8 @@ import {
 import { HttpUtilsError } from "../../src/error";
 import { Fetch } from "../fetch";
 import { HttpBasicAuth } from "../../src/auth/basic";
-import { HttpFetch } from "..";
+import { httpFetch } from "../../src";
+import { SimpleStream } from "@ajuvercr/js-runner";
 
 const mockFetch = new Fetch();
 
@@ -28,27 +29,48 @@ afterAll(() => {
 
 describe("basic.ts auth", () => {
     test("successful", async () => {
-        const credentials = new HttpBasicAuth("admin", "password");
-        mockFetch.set({ credentials });
-        const func = await HttpFetch({ auth: credentials });
-        await func();
+        mockFetch.set({ credentials: new HttpBasicAuth("admin", "password") });
+
+        const func = await httpFetch(
+            "https://example.com",
+            new SimpleStream<string>(),
+            {
+                auth: {
+                    type: "basic",
+                    username: "admin",
+                    password: "password",
+                },
+            },
+        );
+
+        return expect(func()).resolves.toBeUndefined();
     });
 
     test("invalid credentials", async () => {
-        const credentials = new HttpBasicAuth("admin", "password");
-        const invalidCredentials = new HttpBasicAuth("admin", "invalid");
-        mockFetch.set({ credentials });
-        const func = await HttpFetch({ auth: invalidCredentials });
+        mockFetch.set({ credentials: new HttpBasicAuth("admin", "password") });
+
+        const func = await httpFetch(
+            "https://example.com",
+            new SimpleStream<string>(),
+            {
+                auth: {
+                    type: "basic",
+                    username: "admin",
+                    password: "invalid",
+                },
+            },
+        );
+
         return expect(func()).rejects.toThrow(HttpUtilsError.credentialIssue());
     });
 
     test("no credentials", async () => {
-        const credentials = new HttpBasicAuth("admin", "password");
-        mockFetch.set({ credentials });
+        mockFetch.set({ credentials: new HttpBasicAuth("admin", "password") });
 
-        const func = await HttpFetch({
-            headers: ["Content-Type: text/plain", "Accept: text/plain"],
-        });
+        const func = await httpFetch(
+            "https://example.com",
+            new SimpleStream<string>(),
+        );
 
         return expect(func()).rejects.toThrow(
             HttpUtilsError.unauthorizedError(),

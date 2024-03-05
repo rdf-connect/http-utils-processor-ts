@@ -8,7 +8,8 @@ import {
 } from "@jest/globals";
 import { HttpUtilsError } from "../src/error";
 import { Fetch } from "./fetch";
-import { HttpFetch } from ".";
+import { httpFetch } from "../src";
+import { SimpleStream } from "@ajuvercr/js-runner";
 
 const mockFetch = new Fetch();
 
@@ -27,9 +28,13 @@ afterAll(() => {
 
 describe("httpFetch - sanity checks", () => {
     test("status code - malformed range", async () => {
-        const func = HttpFetch({
-            acceptStatusCodes: ["2oo-3oo"],
-        });
+        const func = httpFetch(
+            "https://example.com",
+            new SimpleStream<string>(),
+            {
+                acceptStatusCodes: ["2oo-3oo"],
+            },
+        );
 
         return expect(func).rejects.toThrow(
             HttpUtilsError.invalidStatusCodeRange(),
@@ -37,18 +42,26 @@ describe("httpFetch - sanity checks", () => {
     });
 
     test("headers - malformed", async () => {
-        const func = HttpFetch({
-            headers: ["Content-Type text/plain"],
-        });
+        const func = httpFetch(
+            "https://example.com",
+            new SimpleStream<string>(),
+            {
+                headers: ["a: b", "c"],
+            },
+        );
 
         return expect(func).rejects.toThrow(HttpUtilsError.invalidHeaders());
     });
 
     test("empty body - illegal head method", async () => {
-        const func = HttpFetch({
-            method: "HEAD",
-            bodyCanBeEmpty: false,
-        });
+        const func = httpFetch(
+            "https://example.com",
+            new SimpleStream<string>(),
+            {
+                method: "HEAD",
+                bodyCanBeEmpty: false,
+            },
+        );
 
         return expect(func).rejects.toThrow(
             HttpUtilsError.illegalParameters(
@@ -61,16 +74,25 @@ describe("httpFetch - sanity checks", () => {
 describe("httpFetch - runtime", () => {
     test("status code - unsuccessful default", async () => {
         mockFetch.set({ status: 500 });
-        const func = await HttpFetch({});
+
+        const func = await httpFetch(
+            "https://example.com",
+            new SimpleStream<string>(),
+        );
+
         return expect(func()).rejects.toThrow(
             HttpUtilsError.statusCodeNotAccepted(500),
         );
     });
 
     test("status code - unsuccessful overwritten", async () => {
-        const func = await HttpFetch({
-            acceptStatusCodes: ["201-300"],
-        });
+        const func = await httpFetch(
+            "https://example.com",
+            new SimpleStream<string>(),
+            {
+                acceptStatusCodes: ["201"],
+            },
+        );
 
         return expect(func()).rejects.toThrow(
             HttpUtilsError.statusCodeNotAccepted(200),
@@ -80,9 +102,13 @@ describe("httpFetch - runtime", () => {
     test("status code - successful range", async () => {
         mockFetch.set({ status: 501 });
 
-        const func = await HttpFetch({
-            acceptStatusCodes: ["500-502"],
-        });
+        const func = await httpFetch(
+            "https://example.com",
+            new SimpleStream<string>(),
+            {
+                acceptStatusCodes: ["500-502"],
+            },
+        );
 
         await func();
     });
@@ -90,17 +116,25 @@ describe("httpFetch - runtime", () => {
     test("status code - successful single", async () => {
         mockFetch.set({ status: 500 });
 
-        const func = await HttpFetch({
-            acceptStatusCodes: ["500"],
-        });
+        const func = await httpFetch(
+            "https://example.com",
+            new SimpleStream<string>(),
+            {
+                acceptStatusCodes: ["500"],
+            },
+        );
 
         await func();
     });
 
     test("headers - successful", async () => {
-        const func = await HttpFetch({
-            headers: ["Content-Type: text/plain", "Accept: text/plain"],
-        });
+        const func = await httpFetch(
+            "https://example.com",
+            new SimpleStream<string>(),
+            {
+                headers: ["Content-Type: text/plain", "Accept: text/plain"],
+            },
+        );
 
         await func();
 
@@ -118,7 +152,13 @@ describe("httpFetch - runtime", () => {
     test("empty body - error", async () => {
         mockFetch.set({ nullBody: true });
 
-        const func = await HttpFetch({});
+        const func = await httpFetch(
+            "https://example.com",
+            new SimpleStream<string>(),
+            {
+                bodyCanBeEmpty: false,
+            },
+        );
 
         return expect(func()).rejects.toThrow(
             HttpUtilsError.noBodyInResponse(),
@@ -128,9 +168,13 @@ describe("httpFetch - runtime", () => {
     test("timeout - successful", async () => {
         mockFetch.set({ timeout: 100 });
 
-        const func = await HttpFetch({
-            timeout: 500,
-        });
+        const func = await httpFetch(
+            "https://example.com",
+            new SimpleStream<string>(),
+            {
+                timeOutMilliseconds: 500,
+            },
+        );
 
         await func();
     });
@@ -138,9 +182,13 @@ describe("httpFetch - runtime", () => {
     test("timeout - exceeded", async () => {
         mockFetch.set({ timeout: 500 });
 
-        const func = await HttpFetch({
-            timeout: 100,
-        });
+        const func = await httpFetch(
+            "https://example.com",
+            new SimpleStream<string>(),
+            {
+                timeOutMilliseconds: 100,
+            },
+        );
 
         return expect(func()).rejects.toThrow(HttpUtilsError.timeOutError(100));
     });

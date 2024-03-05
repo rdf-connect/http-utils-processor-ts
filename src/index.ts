@@ -2,10 +2,81 @@ import { Writer } from "@treecg/connector-types";
 import { HttpUtilsError } from "./error";
 import { timeout } from "./util/timeout";
 import { statusCodeAccepted } from "./util/status";
-import { Auth } from "./auth";
 import { parseHeaders } from "./util/headers";
+import { Auth } from "./auth";
+import { HttpBasicAuth } from "./auth/basic";
+import { OAuth2PasswordAuth } from "./auth/oauth/password";
 
-/**
+type AuthType = "basic" | "oauth2";
+
+class HttpFetchArgs {
+    public readonly method: string = "GET";
+    public readonly headers: string[] = [];
+    public readonly acceptStatusCodes: string[] = ["200-300"];
+    public readonly closeOnEnd: boolean = true;
+    public readonly bodyCanBeEmpty: boolean = false;
+    public readonly timeOutMilliseconds: number | null = null;
+    public readonly auth: { type: AuthType; [key: string]: string } | null =
+        null;
+
+    constructor(partial: Partial<HttpFetchArgs>) {
+        Object.assign(this, partial);
+    }
+
+    public getAuth(): Auth | null {
+        if (!this.auth) {
+            return null;
+        }
+
+        if (this.auth.type == "basic") {
+            if (!this.auth.username) {
+                throw HttpUtilsError.illegalParameters(
+                    "Username is required for HTTP Basic Auth.",
+                );
+            }
+
+            if (!this.auth.password) {
+                throw HttpUtilsError.illegalParameters(
+                    "Password is required for HTTP Basic Auth.",
+                );
+            }
+
+            return new HttpBasicAuth(this.auth.username, this.auth.password);
+        }
+
+        if (this.auth.type === "oauth2") {
+            if (!this.auth.username) {
+                throw HttpUtilsError.illegalParameters(
+                    "Username is required for OAuth2.0 Password Grant.",
+                );
+            }
+
+            if (!this.auth.password) {
+                throw HttpUtilsError.illegalParameters(
+                    "Password is required for OAuth2.0 Password Grant.",
+                );
+            }
+
+            if (!this.auth.endpoint) {
+                throw HttpUtilsError.illegalParameters(
+                    "Endpoint is required for OAuth2.0 Password Grant.",
+                );
+            }
+
+            return new OAuth2PasswordAuth(
+                this.auth.username,
+                this.auth.password,
+                this.auth.endpoint,
+            );
+        }
+
+        throw HttpUtilsError.illegalParameters(
+            `Unknown auth type: '${this.auth.type}'`,
+        );
+    }
+}
+
+/*
  * Fetches data from a HTTP endpoint and streams it to a writer.
  * @param url The URL to fetch data from.
  * @param method The HTTP method to use.
@@ -26,29 +97,27 @@ import { parseHeaders } from "./util/headers";
  */
 export async function httpFetch(
     url: string,
-    method: string,
     writer: Writer<string | Buffer>,
-    closeOnEnd: boolean = true,
-    headers: string[] = [],
-    acceptStatusCodes: string[] = ["200-300"],
-    bodyCanBeEmpty: boolean = false,
-    timeOutMilliseconds: number | null = null,
-    auth: Auth | null = null,
-) {
+    options: Partial<HttpFetchArgs> = {},
+): Promise<() => Promise<void>> {
+    // Parse the options as provided by the user.
+    const args = new HttpFetchArgs(options);
+    const auth = args.getAuth();
+
     // Sanity check.
-    if (!bodyCanBeEmpty && method == "HEAD") {
+    if (!args.bodyCanBeEmpty && args.method == "HEAD") {
         throw HttpUtilsError.illegalParameters(
             "Cannot use HEAD method with bodyCanBeEmpty set to false",
         );
     }
 
     // Check validity of the status code range. Will throw error if invalid.
-    statusCodeAccepted(0, acceptStatusCodes);
+    statusCodeAccepted(0, args.acceptStatusCodes);
 
     // Create request object, throws error if invalid.
     const req = new Request(url, {
-        method,
-        headers: parseHeaders(headers),
+        method: options.method,
+        headers: parseHeaders(args.headers),
     });
 
     // This is a source processor (i.e, the first processor in a pipeline),
@@ -67,10 +136,10 @@ export async function httpFetch(
         });
 
         // Wrap the fetch promise in a timeout.
-        const res = await timeout(timeOutMilliseconds, fetchPromise).catch(
+        const res = await timeout(args.timeOutMilliseconds, fetchPromise).catch(
             (err) => {
                 if (err === "timeout") {
-                    throw HttpUtilsError.timeOutError(timeOutMilliseconds);
+                    throw HttpUtilsError.timeOutError(args.timeOutMilliseconds);
                 } else {
                     throw err;
                 }
@@ -78,7 +147,7 @@ export async function httpFetch(
         );
 
         // Check if we accept the status code.
-        if (!statusCodeAccepted(res.status, acceptStatusCodes)) {
+        if (!statusCodeAccepted(res.status, args.acceptStatusCodes)) {
             if (res.status == 401 && auth) {
                 throw HttpUtilsError.credentialIssue();
             } else if (res.status == 401) {
@@ -91,11 +160,11 @@ export async function httpFetch(
         // Special case if the body is empty. We either throw an error or exit
         // early. Make sure to close the writer.
         if (!res.body) {
-            if (!bodyCanBeEmpty) {
+            if (!args.bodyCanBeEmpty) {
                 throw HttpUtilsError.noBodyInResponse();
             }
 
-            if (closeOnEnd) {
+            if (args.closeOnEnd) {
                 await writer.end();
             }
 
@@ -120,7 +189,7 @@ export async function httpFetch(
         }
 
         // Optionally close the output stream.
-        if (closeOnEnd) {
+        if (args.closeOnEnd) {
             await writer.end();
         }
     };
