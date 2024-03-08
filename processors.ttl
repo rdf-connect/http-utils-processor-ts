@@ -68,6 +68,11 @@ js:HttpFetch a js:JsProcess;
        sh:class js:HttpFetchAuth;
        sh:name "auth";
        sh:maxCount 1
+    ], [
+       sh:path js:cron;
+       sh:name "cron";
+       sh:datatype xsd:string;
+       sh:maxCount 1
     ].
 
 [] a sh:NodeShape;

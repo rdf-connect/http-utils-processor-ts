@@ -6,6 +6,7 @@ import { parseHeaders } from "./util/headers";
 import { Auth } from "./auth";
 import { HttpBasicAuth } from "./auth/basic";
 import { OAuth2PasswordAuth } from "./auth/oauth/password";
+import { cronify } from "./util/cron";
 
 type AuthType = "basic" | "oauth2";
 
@@ -18,6 +19,7 @@ class HttpFetchArgs {
     public readonly timeOutMilliseconds: number | null = null;
     public readonly auth: { type: AuthType; [key: string]: string } | null =
         null;
+    public readonly cron: string | null = null;
 
     constructor(partial: Partial<HttpFetchArgs>) {
         Object.assign(this, partial);
@@ -123,7 +125,7 @@ export async function httpFetch(
     // This is a source processor (i.e, the first processor in a pipeline),
     // therefore we should wait until the rest of the pipeline is set
     // to start pushing down data
-    return async () => {
+    let result = async () => {
         // Add basic.ts auth header supplied. Note that we might only want to do this
         // when a request returns 401 for security reasons.
         if (auth) {
@@ -193,4 +195,12 @@ export async function httpFetch(
             await writer.end();
         }
     };
+
+    // If a cron expression is given, call the helper function which will
+    // wrap the current result inside a scheduler.
+    if (args.cron != null) {
+        result = cronify(result, args.cron);
+    }
+
+    return result;
 }

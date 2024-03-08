@@ -14,6 +14,7 @@ enum HttpUtilsErrorType {
     UnauthorizedError,
     CredentialIssue,
     OAuth2TokenError,
+    InvalidCronExpression,
 }
 
 /**
@@ -102,6 +103,13 @@ export class HttpUtilsError extends Error {
         return new HttpUtilsError(
             `An issue occurred while retrieving the OAuth2 token. Response with status code ${code}.`,
             HttpUtilsErrorType.OAuth2TokenError,
+        );
+    }
+
+    static invalidCronExpression() {
+        return new HttpUtilsError(
+            "The provided cron job expression is invalid",
+            HttpUtilsErrorType.InvalidCronExpression,
         );
     }
 }
