@@ -3,12 +3,8 @@ import { HttpUtilsError } from "./error";
 import { timeout } from "./util/timeout";
 import { statusCodeAccepted } from "./util/status";
 import { parseHeaders } from "./util/headers";
-import { Auth } from "./auth";
-import { HttpBasicAuth } from "./auth/basic";
-import { OAuth2PasswordAuth } from "./auth/oauth/password";
+import { Auth, AuthConfig } from "./auth";
 import { cronify } from "./util/cron";
-
-type AuthType = "basic" | "oauth2";
 
 class HttpFetchArgs {
     public readonly method: string = "GET";
@@ -17,8 +13,7 @@ class HttpFetchArgs {
     public readonly closeOnEnd: boolean = true;
     public readonly bodyCanBeEmpty: boolean = false;
     public readonly timeOutMilliseconds: number | null = null;
-    public readonly auth: { type: AuthType; [key: string]: string } | null =
-        null;
+    public readonly auth: AuthConfig | null = null;
     public readonly cron: string | null = null;
 
     constructor(partial: Partial<HttpFetchArgs>) {
@@ -26,55 +21,7 @@ class HttpFetchArgs {
     }
 
     public getAuth(): Auth | null {
-        if (!this.auth) {
-            return null;
-        }
-
-        if (this.auth.type == "basic") {
-            if (!this.auth.username) {
-                throw HttpUtilsError.illegalParameters(
-                    "Username is required for HTTP Basic Auth.",
-                );
-            }
-
-            if (!this.auth.password) {
-                throw HttpUtilsError.illegalParameters(
-                    "Password is required for HTTP Basic Auth.",
-                );
-            }
-
-            return new HttpBasicAuth(this.auth.username, this.auth.password);
-        }
-
-        if (this.auth.type === "oauth2") {
-            if (!this.auth.username) {
-                throw HttpUtilsError.illegalParameters(
-                    "Username is required for OAuth2.0 Password Grant.",
-                );
-            }
-
-            if (!this.auth.password) {
-                throw HttpUtilsError.illegalParameters(
-                    "Password is required for OAuth2.0 Password Grant.",
-                );
-            }
-
-            if (!this.auth.endpoint) {
-                throw HttpUtilsError.illegalParameters(
-                    "Endpoint is required for OAuth2.0 Password Grant.",
-                );
-            }
-
-            return new OAuth2PasswordAuth(
-                this.auth.username,
-                this.auth.password,
-                this.auth.endpoint,
-            );
-        }
-
-        throw HttpUtilsError.illegalParameters(
-            `Unknown auth type: '${this.auth.type}'`,
-        );
+        return this.auth ? Auth.from(this.auth) : null;
     }
 }
 

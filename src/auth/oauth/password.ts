@@ -1,5 +1,5 @@
 import { HttpUtilsError } from "../../error";
-import { Auth } from "../index";
+import { Auth, AuthConfig } from "../index";
 
 export class OAuth2PasswordAuth implements Auth {
     private readonly username: string;
@@ -45,5 +45,31 @@ export class OAuth2PasswordAuth implements Auth {
 
     check(): boolean {
         throw new Error("Method not implemented.");
+    }
+
+    static from(auth: AuthConfig): OAuth2PasswordAuth {
+        if (!auth.username) {
+            throw HttpUtilsError.illegalParameters(
+                "Username is required for OAuth2.0 Password Grant.",
+            );
+        }
+
+        if (!auth.password) {
+            throw HttpUtilsError.illegalParameters(
+                "Password is required for OAuth2.0 Password Grant.",
+            );
+        }
+
+        if (!auth.endpoint) {
+            throw HttpUtilsError.illegalParameters(
+                "Endpoint is required for OAuth2.0 Password Grant.",
+            );
+        }
+
+        return new OAuth2PasswordAuth(
+            auth.username,
+            auth.password,
+            auth.endpoint,
+        );
     }
 }
