@@ -1,5 +1,6 @@
 import { expect, describe, jest, test } from "@jest/globals";
 import { cronify } from "../../src/util/cron";
+import { HttpUtilsError } from "../../src/error";
 
 describe("cron", () => {
     test("success", async () => {
@@ -16,5 +17,11 @@ describe("cron", () => {
         // After five seconds, the function should be called five times.
         await new Promise((res) => setTimeout(res, 5_000));
         expect(mock).toHaveBeenCalledTimes(5);
+    });
+
+    test("invalid cron expression", () => {
+        expect(cronify(async () => {}, "")()).rejects.toThrow(
+            HttpUtilsError.invalidCronExpression(),
+        );
     });
 });
