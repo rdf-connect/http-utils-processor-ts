@@ -25,10 +25,7 @@ describe("processor", () => {
         const proc = `
             [ ] a js:HttpFetch;
                 js:url "http://example.com";
-                js:method "GET";
-                js:headers "content-type: text/plain", "accept: text/plain";
-                js:writer <jw>;
-                js:closeOnEnd true.
+                js:writer <jw>.
         `;
 
         const source: Source = {
@@ -47,63 +44,20 @@ describe("processor", () => {
 
         const argss = extractSteps(env, quads, config);
         expect(argss.length).toBe(1);
-        expect(argss[0].length).toBe(7);
+        expect(argss[0].length).toBe(3);
 
-        const [
-            [
-                url,
-                method,
-                writer,
-                closeOnEnd,
-                headers,
-                acceptStatusCodes,
-                bodyCanBeEmpty,
-            ],
-        ] = argss;
+        const [[url, writer, options]] = argss;
+
+        // URL must be set.
         expect(url).toEqual("http://example.com");
-        expect(method).toEqual("GET");
-        expect(headers).toEqual([
-            "content-type: text/plain",
-            "accept: text/plain",
-        ]);
-        expect(acceptStatusCodes).toEqual([]);
-        expect(bodyCanBeEmpty).toBeUndefined();
+
+        // Writer must be valid.
         testWriter(writer);
-        expect(closeOnEnd).toBeTruthy();
+
+        // No other options are given.
+        expect(options).toBeUndefined();
 
         await checkProc(env.file, env.func);
-    });
-
-    test("parameter - url required", async () => {
-        const proc = `
-            [ ] a js:HttpFetch;
-                js:method "GET";
-                js:headers "content-type: text/plain", "accept: text/plain";
-                js:writer <jw>;
-                js:closeOnEnd true.
-        `;
-
-        const source: Source = {
-            value: pipeline + proc,
-            baseIRI,
-            type: "memory",
-        };
-
-        const {
-            processors,
-            quads,
-            shapes: config,
-        } = await extractProcessors(source);
-        const env = processors.find((x) => x.ty.value.endsWith("HttpFetch"))!;
-        expect(env).toBeDefined();
-
-        // An error must be thrown, since the url is missing.
-        try {
-            extractSteps(env, quads, config);
-            expect(false).toBeTruthy(); // Since rejects.toThrow doesn't work.
-        } catch (e) {
-            expect(e).toEqual("nope");
-        }
     });
 });
 

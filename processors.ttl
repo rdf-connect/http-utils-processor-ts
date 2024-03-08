@@ -18,30 +18,56 @@ js:HttpFetch a js:JsProcess;
             fnom:functionParameter "url";
             fnom:implementationParameterPosition "0"^^xsd:integer
         ], [
-            a fnom:PositionParameterMapping ;
-            fnom:functionParameter "method";
-            fnom:implementationParameterPosition "1"^^xsd:integer
-        ], [
            a fnom:PositionParameterMapping ;
            fnom:functionParameter "writer";
-           fnom:implementationParameterPosition "2"^^xsd:integer
+           fnom:implementationParameterPosition "1"^^xsd:integer
         ], [
             a fnom:PositionParameterMapping ;
-            fnom:functionParameter "closeOnEnd";
-            fnom:implementationParameterPosition "3"^^xsd:integer
-        ], [
-            a fnom:PositionParameterMapping ;
-            fnom:functionParameter "headers";
-            fnom:implementationParameterPosition "4"^^xsd:integer
-        ], [
-            a fnom:PositionParameterMapping ;
-            fnom:functionParameter "acceptStatusCodes";
-            fnom:implementationParameterPosition "5"^^xsd:integer
-        ], [
-            a fnom:PositionParameterMapping ;
-            fnom:functionParameter "bodyCanBeEmpty";
-            fnom:implementationParameterPosition "6"^^xsd:integer
+            fnom:functionParameter "options";
+            fnom:implementationParameterPosition "2"^^xsd:integer
         ]
+    ].
+
+[] a sh:NodeShape;
+    sh:targetClass js:HttpFetchAuth;
+    sh:property [
+        sh:path js:type;
+        sh:name "type";
+        sh:datatype xsd:string;
+        sh:minCount 1;
+        sh:maxCount 1
+    ].
+
+[] a sh:NodeShape;
+    sh:targetClass js:HttpFetchOptions;
+    sh:property [
+        sh:path js:method;
+        sh:name "method";
+        sh:datatype xsd:string;
+        sh:maxCount 1
+    ], [
+        sh:path js:headers;
+        sh:name "headers";
+        sh:datatype xsd:string
+    ], [
+        sh:path js:acceptStatusCodes;
+        sh:name "acceptStatusCodes";
+        sh:datatype xsd:string
+    ], [
+        sh:path js:closeOnEnd;
+        sh:name "closeOnEnd";
+        sh:datatype xsd:boolean;
+        sh:maxCount 1
+    ], [
+        sh:path js:timeOutMilliseconds;
+        sh:name "timeOutMilliseconds";
+        sh:datatype xsd:integer;
+        sh:maxCount 1
+    ], [
+       sh:path js:HttpFetchAuth;
+       sh:class js:HttpFetchAuth;
+       sh:name "auth";
+       sh:maxCount 1
     ].
 
 [] a sh:NodeShape;
@@ -53,32 +79,14 @@ js:HttpFetch a js:JsProcess;
         sh:maxCount 1;
         sh:minCount 1
     ], [
-       sh:path js:method;
-       sh:name "method";
-       sh:datatype xsd:string;
-       sh:maxCount 1
-   ], [
-        sh:path js:headers;
-        sh:name "headers";
-        sh:datatype xsd:string
-    ], [
         sh:path js:writer;
         sh:name "writer";
         sh:class :WriterChannel;
         sh:maxCount 1;
         sh:minCount 1
     ], [
-        sh:path js:closeOnEnd;
-        sh:name "closeOnEnd";
-        sh:datatype xsd:boolean;
-        sh:maxCount 1
-    ], [
-        sh:path js:acceptStatusCodes;
-        sh:name "acceptStatusCodes";
-        sh:datatype xsd:string
-    ], [
-        sh:path js:bodyCanBeEmpty;
-        sh:name "bodyCanBeEmpty";
-        sh:datatype xsd:boolean;
+        sh:path js:HttpFetchOptions;
+        sh:name "options";
+        sh:class js:HttpFetchOptions;
         sh:maxCount 1
     ].
