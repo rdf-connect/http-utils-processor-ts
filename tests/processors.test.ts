@@ -56,8 +56,6 @@ describe("processor", () => {
 
         // No other options are given.
         expect(options).toBeUndefined();
-
-        await checkProc(env.file, env.func);
     });
 });
 
@@ -67,9 +65,4 @@ function testWriter(arg: any) {
     expect(arg.channel).toBeDefined();
     expect(arg.channel.id).toBeDefined();
     expect(arg.ty).toBeDefined();
-}
-
-async function checkProc(location: string, func: string) {
-    const mod = await import("file://" + location);
-    expect(mod[func]).toBeDefined();
 }

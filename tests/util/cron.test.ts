@@ -17,7 +17,7 @@ describe("cron", () => {
         // After five seconds, the function should be called five times.
         await new Promise((res) => setTimeout(res, 5_000));
         expect(mock).toHaveBeenCalledTimes(5);
-    });
+    }, 10_000);
 
     test("invalid cron expression", () => {
         expect(cronify(async () => {}, "")()).rejects.toThrow(

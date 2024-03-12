@@ -1,4 +1,4 @@
-import { describe, test } from "bun:test";
+import { describe, test } from "@jest/globals";
 
 describe.skip("OAuth2.0 Password Grant", () => {
     test("successful", () => {

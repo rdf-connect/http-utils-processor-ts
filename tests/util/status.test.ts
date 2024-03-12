@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, test } from "@jest/globals";
 import { statusCodeAccepted } from "../../src/util/status";
 import { HttpUtilsError } from "../../src/error";
 

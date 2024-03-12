@@ -15,7 +15,7 @@
         "allowSyntheticDefaultImports": true,
         "incremental": true,
         "esModuleInterop": true,
-        "types": ["bun-types"]
+        "removeComments": true
     },
     "ts-node": {
         "esm": true,
