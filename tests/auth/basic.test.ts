@@ -76,4 +76,30 @@ describe("basic.ts auth", () => {
             HttpUtilsError.unauthorizedError(),
         );
     });
+
+    test("incomplete config", async () => {
+        let func = httpFetch(
+            "https://example.com",
+            new SimpleStream<string>(),
+            {
+                auth: { type: "basic", password: "password" },
+            },
+        );
+
+        await expect(func).rejects.toThrow(
+            HttpUtilsError.illegalParameters(
+                "Username is required for HTTP Basic Auth.",
+            ),
+        );
+
+        func = httpFetch("https://example.com", new SimpleStream<string>(), {
+            auth: { type: "basic", username: "username" },
+        });
+
+        await expect(func).rejects.toThrow(
+            HttpUtilsError.illegalParameters(
+                "Password is required for HTTP Basic Auth.",
+            ),
+        );
+    });
 });
