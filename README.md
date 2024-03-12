@@ -50,11 +50,11 @@ All errors thrown in `httpFetch` are of the `HttpFetchError` type, as defined in
 
 ## Tests
 
-At the time of writing, tests should be executed using the Bun runtime.
+At the time of writing, tests should be executed using the Node.js runtime.
 
 ```sh
-$ bun run build
-$ bun test
+$ npm run build
+$ npm test
 ```
 
 Some tests interact with real online servers, and may therefore require credentials. These can be supplied inside a `.env` file at the root of the repository.
