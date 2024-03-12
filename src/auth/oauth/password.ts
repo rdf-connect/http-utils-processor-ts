@@ -33,7 +33,9 @@ export class OAuth2PasswordAuth implements Auth {
         }
 
         // Append the access token to the original request.
-        const authData = await authResponse.json();
+        const authData = (await authResponse.json()) as {
+            access_token: string | undefined;
+        };
         const token = authData["access_token"];
 
         if (!token) {

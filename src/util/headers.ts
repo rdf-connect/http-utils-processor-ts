@@ -14,5 +14,5 @@ export function parseHeaders(headers: string[]): Headers {
         }
         result.append(key.trim(), value.trim());
     });
-    return result;
+    return result as Headers; // Weird bug?
 }
