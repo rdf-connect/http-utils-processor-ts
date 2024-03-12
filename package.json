@@ -6,7 +6,7 @@
     "scripts": {
         "build": "tsc",
         "test": "jest",
-        "pretest": "bun run build"
+        "pretest": "tsc"
     },
     "files": [
         "lib/**/*",
