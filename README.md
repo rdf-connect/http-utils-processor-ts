@@ -1,6 +1,6 @@
 # http-utils-processor-ts
 
-[![Build and test with Bun](https://github.com/jenspots/http-utils-processor-ts/actions/workflows/build-test.yml/badge.svg)](https://github.com/jenspots/http-utils-processor-ts/actions/workflows/build-test.yml)
+[![Build and test with Bun](https://github.com/jenspots/http-utils-processor-ts/actions/workflows/build-test.yml/badge.svg)](https://github.com/jenspots/http-utils-processor-ts/actions/workflows/build-test.yml) [![Coverage Status](https://coveralls.io/repos/github/jenspots/http-utils-processor-ts/badge.svg?branch=main)](https://coveralls.io/github/jenspots/http-utils-processor-ts?branch=main)
 
 Connector Architecture Typescript processors for handling HTTP operations.
 
