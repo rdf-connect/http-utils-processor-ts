@@ -1,4 +1,4 @@
-name: Build and test with Bun
+name: Build and test with Node.js
 
 on:
     push:
