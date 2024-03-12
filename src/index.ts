@@ -6,43 +6,67 @@ import { parseHeaders } from "./util/headers";
 import { Auth, AuthConfig } from "./auth";
 import { cronify } from "./util/cron";
 
+/**
+ * An instance of this class defines how the process should execute a request
+ * against a given URL. All fields are optional and contain default values.
+ */
 class HttpFetchArgs {
+    // The HTTP method to use.
     public readonly method: string = "GET";
+
+    // A list of strings specifying which headers to embed in the request.
+    // Must be in `key: value` format.
     public readonly headers: string[] = [];
+
+    // A list of integer literals or integer ranges encoded as strings. For
+    // example, `200` and `200-300`. Note that `a-b` is inclusive `a`, exclusive
+    // `b`.
     public readonly acceptStatusCodes: string[] = ["200-300"];
+
+    // Indicate the channel must be closed when the response has been
+    // transmitted.
     public readonly closeOnEnd: boolean = true;
+
+    // Whether to throw an error when the body is empty or not. Note that this
+    // cannot be used in conjunction with `method = "HEAD"`.
     public readonly bodyCanBeEmpty: boolean = false;
+
+    // How much time a request might take before an error is thrown. If `null`,
+    // no timeout is set.
     public readonly timeOutMilliseconds: number | null = null;
+
+    // Configuration of authentication. If `null`, no authentication is used.
     public readonly auth: AuthConfig | null = null;
+
+    // Cron expression which indicates how often the function should be run. If
+    // `null`, the function returns immediately after one call.
     public readonly cron: string | null = null;
 
+    /**
+     * Construct a new HttpFetchArgs object by overwriting specific fields.
+     * @param partial An object which may contain any fields of the class, which
+     * will overwrite the default values.
+     */
     constructor(partial: Partial<HttpFetchArgs>) {
         Object.assign(this, partial);
     }
 
+    /**
+     * Construct an `Auth` object based on the parameters given by the user.
+     * Note that this may return `null` if no authentication method is set.
+     */
     public getAuth(): Auth | null {
         return this.auth ? Auth.from(this.auth) : null;
     }
 }
 
-/*
- * Fetches data from a HTTP endpoint and streams it to a writer.
+/**
+ * Fetches data from an HTTP endpoint and streams it to a writer.
  * @param url The URL to fetch data from.
- * @param method The HTTP method to use.
- * @param headers An array of headers in the format "key: value" as strings.
- * @param acceptStatusCodes A string of comma-separated status codes in which
- * either a single number is given, or a range of numbers separated by a
- * hyphen. Note that the first number is inclusive, and the second number is
- * exclusive. For example, "200-210,300".
- * @param writer The writer to stream the data to.
- * @param closeOnEnd Whether to close the writer when the stream ends.
- * @param bodyCanBeEmpty Whether the body can be empty.
- * @param timeOutMilliseconds Time after which the request is considered
- * unsuccessful.
- * @param auth An object containing the username and password for basic.ts
- * http authentication.
- * @throws { HttpUtilsError } May throw an error if `fetch` fails, the headers
- * or status code range is invalid, or if the body is empty while not allowed.
+ * @param writer The output channel into which the body will be written.
+ * @param options An instance of HttpFetchArgs defining various additional
+ * parameters.
+ * @throws HttpUtilsError
  */
 export async function httpFetch(
     url: string,
@@ -73,8 +97,8 @@ export async function httpFetch(
     // therefore we should wait until the rest of the pipeline is set
     // to start pushing down data
     let result = async () => {
-        // Add basic.ts auth header supplied. Note that we might only want to do this
-        // when a request returns 401 for security reasons.
+        // Authentication the request before executing it. We do this every time
+        // to assure credentials don't expire.
         if (auth) {
             await auth.authorize(req);
         }
@@ -84,7 +108,7 @@ export async function httpFetch(
             throw HttpUtilsError.genericFetchError(err);
         });
 
-        // Wrap the fetch promise in a timeout.
+        // Wrap the fetch promise in a timeout and execute.
         const res = await timeout(args.timeOutMilliseconds, fetchPromise).catch(
             (err) => {
                 if (err === "timeout") {
@@ -97,17 +121,17 @@ export async function httpFetch(
 
         // Check if we accept the status code.
         if (!statusCodeAccepted(res.status, args.acceptStatusCodes)) {
-            if (res.status == 401 && auth) {
+            if (res.status === 401 && auth) {
                 throw HttpUtilsError.credentialIssue();
-            } else if (res.status == 401) {
+            } else if (res.status === 401) {
                 throw HttpUtilsError.unauthorizedError();
             } else {
                 throw HttpUtilsError.statusCodeNotAccepted(res.status);
             }
         }
 
-        // Special case if the body is empty. We either throw an error or exit
-        // early. Make sure to close the writer.
+        // Special case: if the body is empty. We either throw an error or exit
+        // early. Make sure to close the writer if required.
         if (!res.body) {
             if (!args.bodyCanBeEmpty) {
                 throw HttpUtilsError.noBodyInResponse();
@@ -124,17 +148,16 @@ export async function httpFetch(
         const reader = res.body.getReader();
         const decoder = new TextDecoder();
 
-        // eslint-disable-next-line no-constant-condition
-        while (true) {
-            const data = await reader.read().catch(() => {
+        let data = await reader.read().catch(() => {
+            throw HttpUtilsError.connectionError();
+        });
+
+        while (!data.done) {
+            await writer.push(decoder.decode(data.value));
+
+            data = await reader.read().catch(() => {
                 throw HttpUtilsError.connectionError();
             });
-
-            if (data.done) {
-                break;
-            }
-
-            await writer.push(decoder.decode(data.value));
         }
 
         // Optionally close the output stream.
