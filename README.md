@@ -10,7 +10,7 @@ Connector Architecture Typescript processors for handling HTTP operations.
 
 Build and execute an HTTP request. Writes the body of the response into a user specified channel.
 
--   `url`: endpoint against which a request is made.
+-   `url`: endpoints against which requests are made. Can be a single string or an array of strings. At the time of writing, the order is not respected and results are pushed down the stream randomly.
 -   `writer`: channel into which the resulting data is written.
 -   `options`: an optional parameter which may include:
     -   `method` the HTTP method to use. (default: `GET`)
@@ -20,6 +20,7 @@ Build and execute an HTTP request. Writes the body of the response into a user s
     -   `timeOutMilliseconds`: maximum time spend waiting for a response before throwing a `HttpFetchError.timeOutError` error. (default: `null`)
     -   `auth`: object describing which authentication flow to use, as well as its parameters. See below for more info. (default: `null`)
     -   `cron`: specify the interval at which the function should run as a crontab expression. If `null`, the function only executes once before returning. (default: `null`)
+    -   `errorsAreFatal`: whether to exit when an error occurs in the fetch phase. Note that when an invalid configuration is provided, an error is still thrown since the function cannot execute at all. (default: `true`)
 
 #### Authentication
 

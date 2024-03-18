@@ -45,9 +45,6 @@ class HttpFetchArgs {
     // If set, any error on any request will terminate the processor.
     public readonly errorsAreFatal: boolean = true;
 
-    // Log errors to console.error.
-    public readonly logErrors: boolean = true;
-
     /**
      * Construct a new HttpFetchArgs object by overwriting specific fields.
      * @param partial An object which may contain any fields of the class, which
@@ -175,13 +172,12 @@ export async function httpFetch(
     let executeAllRequests = async () => {
         const promises = requests.map(executeRequest).map((promise) =>
             promise.catch((err) => {
-                if (args.logErrors) {
-                    console.error(err);
-                }
-
-                // Propagate error to caller if required.
+                // Propagate error to caller if required. Otherwise, simply
+                // print to std error.
                 if (args.errorsAreFatal) {
                     throw err;
+                } else {
+                    console.error(err);
                 }
             }),
         );
