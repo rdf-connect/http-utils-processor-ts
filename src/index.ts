@@ -42,6 +42,12 @@ class HttpFetchArgs {
     // `null`, the function returns immediately after one call.
     public readonly cron: string | null = null;
 
+    // If set, any error on any request will terminate the processor.
+    public readonly errorsAreFatal: boolean = true;
+
+    // Log errors to console.error.
+    public readonly logErrors: boolean = true;
+
     /**
      * Construct a new HttpFetchArgs object by overwriting specific fields.
      * @param partial An object which may contain any fields of the class, which
@@ -69,10 +75,13 @@ class HttpFetchArgs {
  * @throws HttpUtilsError
  */
 export async function httpFetch(
-    url: string,
+    url: string | string[],
     writer: Writer<string | Buffer>,
     options: Partial<HttpFetchArgs> = {},
 ): Promise<() => Promise<void>> {
+    // If only a single URL is given, we save it as an array anyway.
+    url = (Array.isArray(url) ? url : [url]) as string[];
+
     // Parse the options as provided by the user.
     const args = new HttpFetchArgs(options);
     const auth = args.getAuth();
@@ -84,19 +93,28 @@ export async function httpFetch(
         );
     }
 
+    // Sanity check.
+    if (args.closeOnEnd && args.cron !== null) {
+        throw HttpUtilsError.illegalParameters(
+            "Cannot close stream when using cron.",
+        );
+    }
+
     // Check validity of the status code range. Will throw error if invalid.
     statusCodeAccepted(0, args.acceptStatusCodes);
 
-    // Create request object, throws error if invalid.
-    const req = new Request(url, {
-        method: options.method,
-        headers: parseHeaders(args.headers),
+    // Create request objects, throws error if invalid.
+    const headers = parseHeaders(args.headers);
+    const requests = url.map((x) => {
+        return new Request(x, {
+            method: options.method,
+            headers,
+        });
     });
 
-    // This is a source processor (i.e, the first processor in a pipeline),
-    // therefore we should wait until the rest of the pipeline is set
-    // to start pushing down data
-    let result = async () => {
+    // This function takes a single request and executes it. Can be run in
+    // parallel.
+    const executeRequest = async (req: Request): Promise<void> => {
         // Authentication the request before executing it. We do this every time
         // to assure credentials don't expire.
         if (auth) {
@@ -145,22 +163,31 @@ export async function httpFetch(
         }
 
         // Push the data down the pipeline.
-        const reader = res.body.getReader();
-        const decoder = new TextDecoder();
+        const body = await res.text();
+        await writer.push(body);
+    };
 
-        let data = await reader.read().catch(() => {
-            throw HttpUtilsError.connectionError();
-        });
+    // Executes each individual request and groups them into a single promise.
+    // Note that we use Promise.all over Promise.allSettled, which means a
+    // single rejected promise would cause the overarching promise to reject as
+    // well. Therefore, we only rethrow any potential error if `errorsAreFatal`
+    // is set. If set to false,
+    let executeAllRequests = async () => {
+        const promises = requests.map(executeRequest).map((promise) =>
+            promise.catch((err) => {
+                if (args.logErrors) {
+                    console.error(err);
+                }
 
-        while (!data.done) {
-            await writer.push(decoder.decode(data.value));
+                // Propagate error to caller if required.
+                if (args.errorsAreFatal) {
+                    throw err;
+                }
+            }),
+        );
 
-            data = await reader.read().catch(() => {
-                throw HttpUtilsError.connectionError();
-            });
-        }
+        await Promise.all(promises);
 
-        // Optionally close the output stream.
         if (args.closeOnEnd) {
             await writer.end();
         }
@@ -169,8 +196,8 @@ export async function httpFetch(
     // If a cron expression is given, call the helper function which will
     // wrap the current result inside a scheduler.
     if (args.cron != null) {
-        result = cronify(result, args.cron);
+        executeAllRequests = cronify(executeAllRequests, args.cron);
     }
 
-    return result;
+    return executeAllRequests;
 }

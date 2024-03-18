@@ -49,7 +49,7 @@ describe("processor", () => {
         const [[url, writer, options]] = argss;
 
         // URL must be set.
-        expect(url).toEqual("http://example.com");
+        expect(url).toEqual(["http://example.com"]);
 
         // Writer must be valid.
         testWriter(writer);

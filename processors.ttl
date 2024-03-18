@@ -73,6 +73,12 @@ js:HttpFetch a js:JsProcess;
        sh:name "cron";
        sh:datatype xsd:string;
        sh:maxCount 1
+    ], [
+       sh:path js:errorsAreFatal;
+       sh:name "errorsAreFatal";
+       sh:class xsd:boolean;
+       sh:maxCount 1;
+       sh:minCount 0;
     ].
 
 [] a sh:NodeShape;
@@ -81,7 +87,6 @@ js:HttpFetch a js:JsProcess;
         sh:path js:url;
         sh:name "url";
         sh:datatype xsd:string;
-        sh:maxCount 1;
         sh:minCount 1
     ], [
         sh:path js:writer;
