@@ -1,6 +1,6 @@
 {
     "name": "@jenspots/http-utils-processor-ts",
-    "version": "0.0.1-alpha.1",
+    "version": "0.0.1-alpha.2",
     "description": "HTTP util functions to be used within the Connector Architecture",
     "type": "module",
     "scripts": {
