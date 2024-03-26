@@ -25,7 +25,7 @@
     "devDependencies": {
         "@ajuvercr/js-runner": "^0.1.14",
         "@jest/globals": "^29.7.0",
-        "@types/bun": "^1.0.5",
+        "@types/bun": "^1.0.11",
         "@types/jest": "^29.5.12",
         "@types/jsdom": "^21.1.6",
         "@types/supertest": "^6.0.2",
