@@ -1,5 +1,5 @@
 {
-    "name": "@jenspots/http-utils-processor-ts",
+    "name": "@rdfc/http-utils-processor-ts",
     "version": "0.0.1-alpha.2",
     "description": "HTTP util functions to be used within the Connector Architecture",
     "type": "module",
@@ -7,7 +7,8 @@
         "build": "tsc && tsc-alias",
         "test": "jest --coverage",
         "pretest": "tsc && tsc-alias",
-        "prepare": "husky"
+        "prepare": "husky",
+        "prepublishOnly": "npm run build"
     },
     "files": [
         "lib/**/*",
@@ -19,7 +20,7 @@
     ],
     "repository": {
         "type": "git",
-        "url": "git+https://gitlab.ilabt.imec.be/KNoWS/projects/connector-architecture/http-utils-processor-ts.git"
+        "url": "git+https://github.com/rdf-connect/http-utils-processor-ts.git"
     },
     "author": "Jens Pots",
     "devDependencies": {
