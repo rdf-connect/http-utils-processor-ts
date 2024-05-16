@@ -95,7 +95,7 @@ js:HttpFetch a js:JsProcess;
         sh:maxCount 1;
         sh:minCount 1
     ], [
-        sh:path js:HttpFetchOptions;
+        sh:path js:options;
         sh:name "options";
         sh:class js:HttpFetchOptions;
         sh:maxCount 1
