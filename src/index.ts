@@ -52,6 +52,13 @@ class HttpFetchArgs {
      */
     constructor(partial: Partial<HttpFetchArgs>) {
         Object.assign(this, partial);
+
+        // TODO: Find neat solution for this problem. Since JS-Runner uses an
+        // empty list as a default value, it will always be overwritten using
+        // Object.assign.
+        if (this.acceptStatusCodes.length === 0) {
+            this.acceptStatusCodes.push("200-300");
+        }
     }
 
     /**
