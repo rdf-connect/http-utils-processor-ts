@@ -53,12 +53,29 @@ class HttpFetchArgs {
     constructor(partial: Partial<HttpFetchArgs>) {
         Object.assign(this, partial);
 
+        // Sanity check.
+        if (!partial.bodyCanBeEmpty && partial.method == "HEAD") {
+            throw HttpUtilsError.illegalParameters(
+                "Cannot use HEAD method with bodyCanBeEmpty set to false",
+            );
+        }
+
+        // Sanity check.
+        if (partial.closeOnEnd && partial.cron !== null) {
+            throw HttpUtilsError.illegalParameters(
+                "Cannot close stream when using cron.",
+            );
+        }
+
         // TODO: Find neat solution for this problem. Since JS-Runner uses an
         // empty list as a default value, it will always be overwritten using
         // Object.assign.
         if (this.acceptStatusCodes.length === 0) {
             this.acceptStatusCodes.push("200-300");
         }
+
+        // Check validity of the status code range. Will throw error if invalid.
+        statusCodeAccepted(0, this.acceptStatusCodes);
     }
 
     /**
@@ -89,23 +106,6 @@ export async function httpFetch(
     // Parse the options as provided by the user.
     const args = new HttpFetchArgs(options);
     const auth = args.getAuth();
-
-    // Sanity check.
-    if (!args.bodyCanBeEmpty && args.method == "HEAD") {
-        throw HttpUtilsError.illegalParameters(
-            "Cannot use HEAD method with bodyCanBeEmpty set to false",
-        );
-    }
-
-    // Sanity check.
-    if (args.closeOnEnd && args.cron !== null) {
-        throw HttpUtilsError.illegalParameters(
-            "Cannot close stream when using cron.",
-        );
-    }
-
-    // Check validity of the status code range. Will throw error if invalid.
-    statusCodeAccepted(0, args.acceptStatusCodes);
 
     // Create request objects, throws error if invalid.
     const headers = parseHeaders(args.headers);
@@ -159,7 +159,9 @@ export async function httpFetch(
                 throw HttpUtilsError.noBodyInResponse();
             }
 
-            if (args.closeOnEnd) {
+            // We can assume that closeOnEnd is false when a cron expression is
+            // set due to earlier sanity checks.
+            if (!args.cron && args.closeOnEnd) {
                 await writer.end();
             }
 

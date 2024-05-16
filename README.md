@@ -16,7 +16,7 @@ Build and execute an HTTP request. Writes the body of the response into a user s
     -   `method` the HTTP method to use. (default: `GET`)
     -   `headers`: an array of strings to be used as headers in the outgoing request. (default: `[]`)
     -   `acceptStatusCodes`: an array of strings which lists all the status codes deemed "successful". These strings contain either integer literals such as `"200"`, or ranges such as `"200-300"`. Note that range "`a-b`" is inclusive `a`, exclusive `b`. (default: `["200-300"]`)
-    -   `closeOnEnd`: whether to close the writer stream on end. (default: `true`)
+    -   `closeOnEnd`: whether to close the writer stream on end. (default: `true` if no cron expression is specified, `false` otherwise)
     -   `timeOutMilliseconds`: maximum time spend waiting for a response before throwing a `HttpFetchError.timeOutError` error. (default: `null`)
     -   `auth`: object describing which authentication flow to use, as well as its parameters. See below for more info. (default: `null`)
     -   `cron`: specify the interval at which the function should run as a crontab expression. If `null`, the function only executes once before returning. (default: `null`)
