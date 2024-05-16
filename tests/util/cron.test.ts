@@ -1,5 +1,5 @@
 import { expect, describe, jest, test } from "@jest/globals";
-import { cronify } from "../../src/util/cron";
+import { cronify } from "../../src/util/cronify";
 import { HttpUtilsError } from "../../src/error";
 
 describe("cron", () => {

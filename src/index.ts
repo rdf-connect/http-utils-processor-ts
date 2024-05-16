@@ -4,7 +4,7 @@ import { timeout } from "./util/timeout";
 import { statusCodeAccepted } from "./util/status";
 import { parseHeaders } from "./util/headers";
 import { Auth, AuthConfig } from "./auth";
-import { cronify } from "./util/cron";
+import { cronify } from "./util/cronify";
 
 /**
  * An instance of this class defines how the process should execute a request
