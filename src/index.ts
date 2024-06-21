@@ -169,8 +169,12 @@ export async function httpFetch(
         }
 
         // Push the data down the pipeline.
-        const body = await res.text();
-        await writer.push(body);
+        try {
+            const body = await res.text();
+            await writer.push(body);
+        } catch (e) {
+            console.error(e);
+        }
     };
 
     // Executes each individual request and groups them into a single promise.

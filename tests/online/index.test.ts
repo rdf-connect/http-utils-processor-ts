@@ -156,4 +156,23 @@ describe("Real world datasets", () => {
 
         return expect(func()).resolves.toBeUndefined();
     });
+
+    test(
+        "Swedish - success",
+        async () => {
+            const writeStream = writer((output) => {
+                console.log(
+                    `Size of incoming data: ${output.length} characters.`,
+                );
+            });
+
+            const func = await httpFetch(
+                "https://admin.dataportal.se/all.rdf",
+                writeStream,
+            );
+
+            return expect(func()).resolves.toBeUndefined();
+        },
+        60 * 1000,
+    );
 });
