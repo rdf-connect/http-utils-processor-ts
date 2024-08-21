@@ -20,6 +20,7 @@ Build and execute an HTTP request. Writes the body of the response into a user s
     -   `timeOutMilliseconds`: maximum time spend waiting for a response before throwing a `HttpFetchError.timeOutError` error. (default: `null`)
     -   `auth`: object describing which authentication flow to use, as well as its parameters. See below for more info. (default: `null`)
     -   `cron`: specify the interval at which the function should run as a crontab expression. If `null`, the function only executes once before returning. (default: `null`)
+    -   `runOnInit`: Instantly triggers the fetch function post initialization. This only works if `cron` is not set to `null` (otherwise, this is the default behavior). (default: `false`)
     -   `errorsAreFatal`: whether to exit when an error occurs in the fetch phase. Note that when an invalid configuration is provided, an error is still thrown since the function cannot execute at all. (default: `true`)
 
 #### Authentication

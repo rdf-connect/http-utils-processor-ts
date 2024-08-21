@@ -12,7 +12,7 @@ describe("cron", () => {
         // Abusing the comma notation in order to execute every second.
         const zeroToSixty = [...Array(60).keys()];
         const everySecond = `${zeroToSixty.join(",")} * * * * *`;
-        await cronify(callsTheMock, everySecond)();
+        await cronify(callsTheMock, everySecond, false)();
 
         // After five seconds, the function should be called five times.
         await new Promise((res) => setTimeout(res, 5_000));
@@ -20,7 +20,7 @@ describe("cron", () => {
     }, 10_000);
 
     test("invalid cron expression", () => {
-        expect(cronify(async () => {}, "")()).rejects.toThrow(
+        expect(cronify(async () => {}, "", false)()).rejects.toThrow(
             HttpUtilsError.invalidCronExpression(),
         );
     });

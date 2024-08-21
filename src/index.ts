@@ -42,6 +42,10 @@ class HttpFetchArgs {
     // `null`, the function returns immediately after one call.
     public readonly cron: string | null = null;
 
+    // Instantly triggers the fetch function post initialization. This only works
+    // if `cron` is not set to `null` (otherwise, this is the default behavior).
+    public readonly runOnInit: boolean = false;
+
     // If set, any error on any request will terminate the processor.
     public readonly errorsAreFatal: boolean = true;
 
@@ -205,7 +209,11 @@ export async function httpFetch(
     // If a cron expression is given, call the helper function which will
     // wrap the current result inside a scheduler.
     if (args.cron != null) {
-        executeAllRequests = cronify(executeAllRequests, args.cron);
+        executeAllRequests = cronify(
+            executeAllRequests,
+            args.cron,
+            args.runOnInit,
+        );
     }
 
     return executeAllRequests;
