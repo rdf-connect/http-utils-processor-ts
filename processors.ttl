@@ -74,6 +74,11 @@ js:HttpFetch a js:JsProcess;
        sh:datatype xsd:string;
        sh:maxCount 1
     ], [
+        sh:path js:runOnInit;
+        sh:name "runOnInit";
+        sh:datatype xsd:boolean;
+        sh:maxCount 1
+    ], [
        sh:path js:errorsAreFatal;
        sh:name "errorsAreFatal";
        sh:class xsd:boolean;

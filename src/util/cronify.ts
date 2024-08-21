@@ -7,11 +7,13 @@ import { HttpUtilsError } from "../error";
  * job initialize.
  * @param func The function to wrap inside the cron expression.
  * @param cronExpression A cron expression.
+ * @param runOnInit Instantly triggers the fetch function post initialization.
  * @throws
  */
 export function cronify(
     func: () => Promise<void>,
     cronExpression: string,
+    runOnInit: boolean,
 ): () => Promise<void> {
     return async () => {
         try {
@@ -20,6 +22,7 @@ export function cronify(
                 onTick: func,
                 start: true,
                 timeZone: null,
+                runOnInit: runOnInit,
             });
         } catch (e) {
             throw HttpUtilsError.invalidCronExpression();
