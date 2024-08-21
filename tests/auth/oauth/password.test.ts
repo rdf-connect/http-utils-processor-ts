@@ -1,4 +1,4 @@
-import { describe, test } from "@jest/globals";
+import { describe, test } from "vitest";
 
 describe.skip("OAuth2.0 Password Grant", () => {
     test("successful", () => {

@@ -1,4 +1,4 @@
-import { SimpleStream } from "@ajuvercr/js-runner";
+import { SimpleStream } from "@rdfc/js-runner";
 
 export function writer(callback: (str: string) => void) {
     const writeStream = new SimpleStream<string>();

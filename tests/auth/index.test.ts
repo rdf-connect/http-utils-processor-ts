@@ -1,6 +1,6 @@
-import { describe, expect, test } from "@jest/globals";
+import { describe, expect, test } from "vitest";
 import { httpFetch } from "../../src";
-import { SimpleStream } from "@ajuvercr/js-runner";
+import { SimpleStream } from "@rdfc/js-runner";
 import { HttpUtilsError } from "../../src/error";
 
 describe("auth", () => {

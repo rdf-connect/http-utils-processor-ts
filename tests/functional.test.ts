@@ -5,11 +5,11 @@ import {
     beforeEach,
     beforeAll,
     afterAll,
-} from "@jest/globals";
+} from "vitest";
 import { HttpUtilsError } from "../src/error";
 import { Fetch } from "./fetch";
 import { httpFetch } from "../src";
-import { SimpleStream } from "@ajuvercr/js-runner";
+import { SimpleStream } from "@rdfc/js-runner";
 
 const mockFetch = new Fetch();
 

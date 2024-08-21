@@ -1,4 +1,4 @@
-import { Writer } from "@treecg/connector-types";
+import { Writer } from "@rdfc/js-runner";
 import { HttpUtilsError } from "./error";
 import { timeout } from "./util/timeout";
 import { statusCodeAccepted } from "./util/status";
