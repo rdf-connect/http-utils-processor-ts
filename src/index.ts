@@ -5,6 +5,9 @@ import { statusCodeAccepted } from "./util/status";
 import { parseHeaders } from "./util/headers";
 import { Auth, AuthConfig } from "./auth";
 import { cronify } from "./util/cronify";
+import { getLoggerFor } from "./util/logUtil";
+
+const logger = getLoggerFor("httpFetch");
 
 /**
  * An instance of this class defines how the process should execute a request
@@ -123,6 +126,8 @@ export async function httpFetch(
     // This function takes a single request and executes it. Can be run in
     // parallel.
     const executeRequest = async (req: Request): Promise<void> => {
+        logger.debug(`Executing request to '${req.url}'...`);
+
         // Authentication the request before executing it. We do this every time
         // to assure credentials don't expire.
         if (auth) {
