@@ -1,5 +1,4 @@
-import { jest } from "@jest/globals";
-export import Mock = jest.Mock;
+import { vi, Mock } from "vitest";
 import { Auth } from "../src/auth";
 
 export type FetchArgs = {
@@ -10,7 +9,7 @@ export type FetchArgs = {
 };
 
 export class Fetch {
-    private fetch: Mock<typeof fetch> = jest.fn(Fetch.build());
+    private fetch: Mock<typeof fetch> = vi.fn(Fetch.build());
     private readonly original: typeof fetch;
 
     private static build(args: FetchArgs = {}): typeof fetch {

@@ -1,10 +1,10 @@
-import { expect, describe, jest, test } from "@jest/globals";
+import { expect, describe, vi, test } from "vitest";
 import { cronify } from "../../src/util/cronify";
 import { HttpUtilsError } from "../../src/error";
 
 describe("cron", () => {
     test("success", async () => {
-        const mock = jest.fn(() => {});
+        const mock = vi.fn(() => {});
         const callsTheMock = async () => {
             mock();
         };

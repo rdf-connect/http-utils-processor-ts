@@ -1,5 +1,5 @@
-import { expect, test, describe } from "@jest/globals";
-import { extractProcessors, extractSteps, Source } from "@ajuvercr/js-runner";
+import { expect, test, describe } from "vitest";
+import { extractProcessors, extractSteps, Source } from "@rdfc/js-runner";
 
 describe("processor", () => {
     const pipeline = `
@@ -11,7 +11,7 @@ describe("processor", () => {
         @prefix xsd: <http://www.w3.org/2001/XMLSchema#>.
         @prefix sh: <http://www.w3.org/ns/shacl#>.
 
-        <> owl:imports <./node_modules/@ajuvercr/js-runner/ontology.ttl>, <./processors.ttl>.
+        <> owl:imports <./node_modules/@rdfc/js-runner/ontology.ttl>, <./processors.ttl>.
 
         [ ] a :Channel;
             :writer <jw>.
@@ -62,7 +62,8 @@ describe("processor", () => {
 // eslint-disable-next-line
 function testWriter(arg: any) {
     expect(arg).toBeInstanceOf(Object);
-    expect(arg.channel).toBeDefined();
-    expect(arg.channel.id).toBeDefined();
+    expect(arg).toBeDefined();
+    expect(arg.id).toBeDefined();
     expect(arg.ty).toBeDefined();
+    expect(arg.ty.id).toBe("https://w3id.org/conn/js#JsWriterChannel");
 }
