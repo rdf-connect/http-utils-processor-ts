@@ -1,6 +1,6 @@
 {
     "name": "@rdfc/http-utils-processor-ts",
-    "version": "0.0.2",
+    "version": "0.0.3",
     "description": "HTTP util functions to be used within the Connector Architecture",
     "type": "module",
     "scripts": {
