@@ -41,7 +41,7 @@
         "vitest": "^2.1.1"
     },
     "dependencies": {
-        "@node-oauth/express-oauth-server": "^4.1.0",
+        "@node-oauth/express-oauth-server": "^4.1.1",
         "@node-oauth/oauth2-server": "^5.2.0",
         "cron": "^3.1.7",
         "dotenv": "^16.4.5",
