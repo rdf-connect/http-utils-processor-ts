@@ -45,7 +45,7 @@
         "@node-oauth/oauth2-server": "^5.2.0",
         "cron": "^3.2.1",
         "dotenv": "^16.4.7",
-        "express": "^4.21.1",
+        "express": "^4.21.2",
         "husky": "^9.1.7",
         "lint-staged": "^15.2.10",
         "ts-node": "^10.9.2",
