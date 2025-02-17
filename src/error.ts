@@ -78,7 +78,7 @@ export class HttpUtilsError extends Error {
         );
     }
 
-    static timeOutError(ms: number | null) {
+    static timeOutError(ms: number | null | undefined) {
         return new HttpUtilsError(
             `Request exceeded time limit of ${ms} ms`,
             HttpUtilsErrorType.TimeOutError,

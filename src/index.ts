@@ -36,14 +36,14 @@ class HttpFetchArgs {
 
     // How much time a request might take before an error is thrown. If `null`,
     // no timeout is set.
-    public readonly timeOutMilliseconds: number | null = null;
+    public readonly timeOutMilliseconds: number | null | undefined = null;
 
     // Configuration of authentication. If `null`, no authentication is used.
     public readonly auth: AuthConfig | null = null;
 
     // Cron expression which indicates how often the function should be run. If
     // `null`, the function returns immediately after one call.
-    public readonly cron: string | null = null;
+    public readonly cron: string | null | undefined = null;
 
     // Instantly triggers the fetch function post initialization. This only works
     // if `cron` is not set to `null` (otherwise, this is the default behavior).
@@ -71,7 +71,7 @@ class HttpFetchArgs {
         }
 
         // Sanity check.
-        if (partial.closeOnEnd && partial.cron !== null) {
+        if (partial.closeOnEnd && partial.cron) {
             throw HttpUtilsError.illegalParameters(
                 "Cannot close stream when using cron.",
             );
@@ -218,7 +218,7 @@ export async function httpFetch(
 
     // If a cron expression is given, call the helper function which will
     // wrap the current result inside a scheduler.
-    if (args.cron != null) {
+    if (args.cron) {
         executeAllRequests = cronify(
             executeAllRequests,
             args.cron,
