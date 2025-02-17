@@ -1,7 +1,7 @@
 {
     "name": "@rdfc/http-utils-processor-ts",
     "version": "0.1.0",
-    "description": "HTTP util functions to be used within the Connector Architecture",
+    "description": "HTTP util functions to be used within RDF-Connect",
     "type": "module",
     "scripts": {
         "build": "tsc && tsc-alias",
@@ -16,7 +16,7 @@
     ],
     "keywords": [
         "HTTP",
-        "Connector Architecture"
+        "RDF-Connect"
     ],
     "repository": {
         "type": "git",

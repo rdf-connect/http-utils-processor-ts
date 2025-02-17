@@ -1,8 +1,8 @@
 # http-utils-processor-ts
 
-[![Build and test with Bun](https://github.com/jenspots/http-utils-processor-ts/actions/workflows/build-test.yml/badge.svg)](https://github.com/jenspots/http-utils-processor-ts/actions/workflows/build-test.yml) [![Coverage Status](https://coveralls.io/repos/github/jenspots/http-utils-processor-ts/badge.svg?branch=main)](https://coveralls.io/github/jenspots/http-utils-processor-ts?branch=main) [![npm](https://img.shields.io/npm/v/@rdfc/http-utils-processor-ts.svg?style=popout)](https://npmjs.com/package/@rdfc/http-utils-processor-ts)
+[![Build and test](https://github.com/jenspots/http-utils-processor-ts/actions/workflows/build-test.yml/badge.svg)](https://github.com/jenspots/http-utils-processor-ts/actions/workflows/build-test.yml) [![Coverage Status](https://coveralls.io/repos/github/jenspots/http-utils-processor-ts/badge.svg?branch=main)](https://coveralls.io/github/jenspots/http-utils-processor-ts?branch=main) [![npm](https://img.shields.io/npm/v/@rdfc/http-utils-processor-ts.svg?style=popout)](https://npmjs.com/package/@rdfc/http-utils-processor-ts)
 
-Connector Architecture Typescript processors for handling HTTP operations.
+RDF-Connect Typescript processors for handling HTTP operations.
 
 ## Functions
 
