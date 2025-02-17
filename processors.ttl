@@ -84,6 +84,12 @@ js:HttpFetch a js:JsProcess;
        sh:class xsd:boolean;
        sh:maxCount 1;
        sh:minCount 0;
+    ], [
+        sh:path js:outputAsBuffer;
+        sh:name "outputAsBuffer";
+        sh:datatype xsd:boolean;
+        sh:maxCount 1;
+        sh:minCount 0
     ].
 
 [] a sh:NodeShape;

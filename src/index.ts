@@ -52,6 +52,9 @@ class HttpFetchArgs {
     // If set, any error on any request will terminate the processor.
     public readonly errorsAreFatal: boolean = true;
 
+    // If set, the output will be returned as a buffer instead of a string.
+    public readonly outputAsBuffer: boolean = false;
+
     /**
      * Construct a new HttpFetchArgs object by overwriting specific fields.
      * @param partial An object which may contain any fields of the class, which
@@ -179,7 +182,9 @@ export async function httpFetch(
 
         // Push the data down the pipeline.
         try {
-            const body = await res.text();
+            const body = args.outputAsBuffer 
+                ? Buffer.from(await res.arrayBuffer())
+                : await res.text();
             await writer.push(body);
         } catch (e) {
             console.error(e);
