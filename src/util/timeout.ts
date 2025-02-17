@@ -7,11 +7,11 @@
  * @return The result of the original promise.
  */
 export async function timeout<T>(
-    ms: number | null,
+    ms: number | null | undefined,
     promise: Promise<T>,
 ): Promise<T> {
     // Makes the actual httpFetch implementation a bit cleaner.
-    if (ms === null) {
+    if (ms === null || ms === undefined) {
         return promise;
     }
 
