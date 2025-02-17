@@ -59,11 +59,9 @@ describe("processor", () => {
     });
 });
 
-// eslint-disable-next-line
 function testWriter(arg: any) {
     expect(arg).toBeInstanceOf(Object);
-    expect(arg).toBeDefined();
-    expect(arg.id).toBeDefined();
     expect(arg.ty).toBeDefined();
-    expect(arg.ty.id).toBe("https://w3id.org/conn/js#JsWriterChannel");
+    expect(arg.config.channel).toBeDefined();
+    expect(arg.config.channel.id).toBeDefined();
 }
