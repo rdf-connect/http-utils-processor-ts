@@ -30,7 +30,7 @@
         "@types/supertest": "^6.0.2",
         "@typescript-eslint/eslint-plugin": "^8.26.1",
         "@typescript-eslint/parser": "^8.26.1",
-        "@vitest/coverage-v8": "^3.0.8",
+        "@vitest/coverage-v8": "^3.0.9",
         "eslint": "^9.20.1",
         "eslint-config-prettier": "^10.1.1",
         "jsdom": "^26.0.0",
@@ -39,7 +39,7 @@
         "tsc-alias": "^1.8.11",
         "typescript": "^5.8.2",
         "vite-tsconfig-paths": "^5.1.4",
-        "vitest": "^3.0.8"
+        "vitest": "^3.0.9"
     },
     "dependencies": {
         "@node-oauth/express-oauth-server": "^4.1.2",
