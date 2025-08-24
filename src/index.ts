@@ -120,14 +120,14 @@ export class HttpFetch extends Processor<HttpFetchArgs> {
         ) as string[];
 
         // Parse the options as provided by the user.
-        this.arguments = new HttpFetchArguments(this.options);
+        this.arguments = new HttpFetchArguments(this.options || {});
         this.auth = this.arguments.getAuth();
 
         // Create request objects, throws error if invalid.
         const headers = parseHeaders(this.arguments.headers);
         this.requests = this.url.map((x) => {
             return new Request(x, {
-                method: this.options.method,
+                method: this.arguments.method,
                 headers,
             });
         });
