@@ -2,76 +2,137 @@
 
 [![Build and test](https://github.com/jenspots/http-utils-processor-ts/actions/workflows/build-test.yml/badge.svg)](https://github.com/jenspots/http-utils-processor-ts/actions/workflows/build-test.yml) [![Coverage Status](https://coveralls.io/repos/github/jenspots/http-utils-processor-ts/badge.svg?branch=main)](https://coveralls.io/github/jenspots/http-utils-processor-ts?branch=main) [![npm](https://img.shields.io/npm/v/@rdfc/http-utils-processor-ts.svg?style=popout)](https://npmjs.com/package/@rdfc/http-utils-processor-ts)
 
-RDF-Connect Typescript processors for handling HTTP operations.
+RDF-Connect Typescript processors for handling HTTP operations. The main processor fetches a URL and writes the response to an output channel. It supports configurable HTTP methods, headers, authentication, and scheduling via cron expressions.
 
-## Functions
+---
 
-### [`httpFetch`](./src/index.ts)
+## Usage
 
-Build and execute an HTTP request. Writes the body of the response into a user specified channel.
+### Installation
 
--   `url`: endpoints against which requests are made. Can be a single string or an array of strings. At the time of writing, the order is not respected and results are pushed down the stream randomly.
--   `writer`: channel into which the resulting data is written.
--   `options`: an optional parameter which may include:
-    -   `method` the HTTP method to use. (default: `GET`)
-    -   `headers`: an array of strings to be used as headers in the outgoing request. (default: `[]`)
-    -   `acceptStatusCodes`: an array of strings which lists all the status codes deemed "successful". These strings contain either integer literals such as `"200"`, or ranges such as `"200-300"`. Note that range "`a-b`" is inclusive `a`, exclusive `b`. (default: `["200-300"]`)
-    -   `closeOnEnd`: whether to close the writer stream on end. (default: `true` if no cron expression is specified, `false` otherwise)
-    -   `timeOutMilliseconds`: maximum time spend waiting for a response before throwing a `HttpFetchError.timeOutError` error. (default: `null`)
-    -   `auth`: object describing which authentication flow to use, as well as its parameters. See below for more info. (default: `null`)
-    -   `cron`: specify the interval at which the function should run as a crontab expression. If `null`, the function only executes once before returning. (default: `null`)
-    -   `runOnInit`: Instantly triggers the fetch function post initialization. This only works if `cron` is not set to `null` (otherwise, this is the default behavior). (default: `false`)
-    -   `errorsAreFatal`: whether to exit when an error occurs in the fetch phase. Note that when an invalid configuration is provided, an error is still thrown since the function cannot execute at all. (default: `true`)
+```bash
+npm install
+npm run build
+```
 
-#### Authentication
+Or install from NPM:
 
-This package supports some forms of authentication such as HTTP Basic Authentication and the OAuth 2.0 Password Grant. Additional methods may be implemented by extending the abstract [`Auth`](./src/auth/index.ts) class, after which you must define an additional [`AuthConfig`](./src/auth/index.ts) type and extend the [`Auth.from`](./src/auth/index.ts) static method.
+```bash
+npm install @rdfc/http-utils-processor-ts
+```
 
-##### HTTP Basic Authentication
+---
 
-A simple flow which includes the base64 encoded username and password in each request.
+### Pipeline Configuration Example
 
--   `type`: must be set to`basic`.
--   `username`: your username as string.
--   `password`: your plaintext password.
+```turtle
+@prefix rdfc: <https://w3id.org/rdf-connect#>.
+@prefix owl: <http://www.w3.org/2002/07/owl#>.
 
-##### OAuth 2.0 Password Grant
+### Import the processor definitions
+<> owl:imports <./node_modules/@rdfc/http-utils-processor-ts/processors.ttl>.
 
-Before executing your request, a POST request is sent to the OAuth server in order to obtain a token. The result of which is embedded as a header inside the original request.
+### Define the channels your processor needs
+<out> a rdfc:Writer.
 
--   `type`: must be set to `oauth2`
--   `endpoint`: the URL of the OAuth 2.0 server.
--   `username`: your username as string.
--   `password`: your plaintext password.
+### Define and configure the processor
+<fetcher> a rdfc:HttpFetch;
+    rdfc:url "https://example.org/api/data";
+    rdfc:writer <out>;
+    rdfc:options [
+        rdfc:method "GET";
+        rdfc:headers "Authorization: Bearer TOKEN";
+        rdfc:acceptStatusCodes "200-300";
+        rdfc:closeOnEnd true;
+        rdfc:timeOutMilliseconds 5000;
+        rdfc:cron "*/5 * * * *";
+        rdfc:runOnInit true;
+        rdfc:errorsAreFatal true;
+        rdfc:outputAsBuffer false;
+        rdfc:auth [
+            rdfc:type "basic";
+            rdfc:username "user";
+            rdfc:password "pass"
+        ]
+    ].
+```
 
-Note that your credentials are not send to the server you specified in the `url` option of `httpFetch`, but only to the `endpoint` you specified above.
+---
+
+## Configuration
+
+### Parameters of `rdfc:HttpFetch`:
+
+- `rdfc:url` (**string**, required): URL(s) to fetch. Can be a single string or an array of strings.
+- `rdfc:writer` (**rdfc:Writer**, required): Output channel to write the fetched response.
+- `rdfc:options` (**rdfc:HttpFetchOptions**, optional): Optional settings including method, headers, timeout, authentication, cron, and more.
+
+---
+
+### Parameters of `rdfc:HttpFetchOptions`:
+
+- `rdfc:method` (**string**, optional): HTTP method (default: `GET`).
+- `rdfc:headers` (**string[]**, optional): Array of header strings (default: `[]`).
+- `rdfc:acceptStatusCodes` (**string[]**, optional): List of accepted status codes or ranges, e.g., `["200", "201-300"]` (default: `["200-300"]`).
+- `rdfc:closeOnEnd` (**boolean**, optional): Whether to close the writer after execution. Default depends on cron: `true` if no cron, `false` otherwise.
+- `rdfc:timeOutMilliseconds` (**integer**, optional): Maximum wait time for a response before throwing a timeout error.
+- `rdfc:auth` (**rdfc:HttpFetchAuth**, optional): Authentication configuration (see below).
+- `rdfc:cron` (**string**, optional): Cron expression to schedule repeated executions.
+- `rdfc:runOnInit` (**boolean**, optional): Run immediately upon initialization if cron is set (default: `false`).
+- `rdfc:errorsAreFatal` (**boolean**, optional): Exit on fetch errors (default: `true`).
+- `rdfc:outputAsBuffer` (**boolean**, optional): Whether the response is returned as a buffer (default: `false`).
+
+---
+
+### Authentication (`rdfc:HttpFetchAuth`)
+
+Supported types:
+
+#### HTTP Basic Authentication
+
+- `rdfc:type`: `"basic"`
+- `rdfc:username`: Username string
+- `rdfc:password`: Plaintext password
+
+#### OAuth 2.0 Password Grant
+
+- `rdfc:type`: `"oauth2"`
+- `rdfc:endpoint`: URL of the OAuth 2.0 server
+- `rdfc:username`: Username string
+- `rdfc:password`: Plaintext password
+
+> Credentials are only sent to the authentication endpoint, not to the target URL.
+
+---
 
 ## Errors
 
-All errors thrown in `httpFetch` are of the `HttpFetchError` type, as defined in [`./src/error.ts`](./src/error.ts). This class contains a `HttpUtilsErrorType` enum value which reflects the nature of the error.
+All errors thrown are of type `HttpFetchError` and include a `HttpUtilsErrorType` enum describing the error nature.
+
+---
 
 ## Tests
 
-At the time of writing, tests should be executed using the Node.js runtime.
+Use Node.js to run tests:
 
-```sh
-$ npm run build
-$ npm test
+```bash
+npm run build
+npm test
 ```
 
-Some tests interact with real online servers, and may therefore require credentials. These can be supplied inside a `.env` file at the root of the repository.
+Some tests interact with real servers and may require credentials via a `.env` file:
 
 ```shell
-# Requires OAuth 2.0 Password Grant
+# OAuth 2.0 Password Grant
 RINF_USERNAME=
 RINF_PASSWORD=
 
-# Requires HTTP Basic Auth
+# HTTP Basic Auth
 WoRMS_USERNAME=
 WoRMS_PASSWORD=
 
-# Needs to be `true` in order to execute
+# Set to true to enable real requests
 BLUE_BIKE=true
 ```
 
-Additional information can be found [here](./tests/README.md).
+Additional test information can be found [here](./tests/README.md).  

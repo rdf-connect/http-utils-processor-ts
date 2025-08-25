@@ -1,19 +1,16 @@
-import { Writer } from "@rdfc/js-runner";
+import { Processor, Writer } from "@rdfc/js-runner";
 import { HttpUtilsError } from "./error";
 import { timeout } from "./util/timeout";
 import { statusCodeAccepted } from "./util/status";
 import { parseHeaders } from "./util/headers";
 import { Auth, AuthConfig } from "./auth";
 import { cronify } from "./util/cronify";
-import { getLoggerFor } from "./util/logUtil";
-
-const logger = getLoggerFor("httpFetch");
 
 /**
  * An instance of this class defines how the process should execute a request
  * against a given URL. All fields are optional and contain default values.
  */
-class HttpFetchArgs {
+class HttpFetchArguments {
     // The HTTP method to use.
     public readonly method: string = "GET";
 
@@ -60,7 +57,7 @@ class HttpFetchArgs {
      * @param partial An object which may contain any fields of the class, which
      * will overwrite the default values.
      */
-    constructor(partial: Partial<HttpFetchArgs>) {
+    constructor(partial: Partial<HttpFetchArguments>) {
         Object.assign(this, partial);
 
         // Sanity check.
@@ -105,36 +102,97 @@ class HttpFetchArgs {
  * parameters.
  * @throws HttpUtilsError
  */
-export async function httpFetch(
-    url: string | string[],
-    writer: Writer<string | Buffer>,
-    options: Partial<HttpFetchArgs> = {},
-): Promise<() => Promise<void>> {
-    // If only a single URL is given, we save it as an array anyway.
-    url = (Array.isArray(url) ? url : [url]) as string[];
+type HttpFetchArgs = {
+    url: string | string[];
+    writer: Writer;
+    options: Partial<HttpFetchArguments>;
+};
 
-    // Parse the options as provided by the user.
-    const args = new HttpFetchArgs(options);
-    const auth = args.getAuth();
+export class HttpFetch extends Processor<HttpFetchArgs> {
+    protected arguments: HttpFetchArguments;
+    protected auth: Auth | null = null;
+    protected requests: Request[] = [];
 
-    // Create request objects, throws error if invalid.
-    const headers = parseHeaders(args.headers);
-    const requests = url.map((x) => {
-        return new Request(x, {
-            method: options.method,
-            headers,
+    async init(this: HttpFetchArgs & this): Promise<void> {
+        // If only a single URL is given, we save it as an array anyway.
+        this.url = (
+            Array.isArray(this.url) ? this.url : [this.url]
+        ) as string[];
+
+        // Parse the options as provided by the user.
+        this.arguments = new HttpFetchArguments(this.options || {});
+        this.auth = this.arguments.getAuth();
+
+        // Create request objects, throws error if invalid.
+        const headers = parseHeaders(this.arguments.headers);
+        this.requests = this.url.map((x) => {
+            return new Request(x, {
+                method: this.arguments.method,
+                headers,
+            });
         });
-    });
+    }
 
-    // This function takes a single request and executes it. Can be run in
-    // parallel.
-    const executeRequest = async (req: Request): Promise<void> => {
-        logger.debug(`Executing request to '${req.url}'...`);
+    async transform(this: HttpFetchArgs & this): Promise<void> {
+        // nothing
+    }
+
+    async produce(this: HttpFetchArgs & this): Promise<void> {
+        // Executes each individual request and groups them into a single promise.
+        // Note that we use Promise.all over Promise.allSettled, which means a
+        // single rejected promise would cause the overarching promise to reject as
+        // well. Therefore, we only rethrow any potential error if `errorsAreFatal`
+        // is set. If set to false,
+        let executeAllRequests = async () => {
+            const promises = this.requests
+                .map((req) => this.executeRequest(req))
+                .map((promise) =>
+                    promise.catch((err) => {
+                        // Propagate error to caller if required. Otherwise, simply
+                        // print to std error.
+                        if (this.arguments.errorsAreFatal) {
+                            throw err;
+                        } else {
+                            console.error(err);
+                        }
+                    }),
+                );
+
+            await Promise.all(promises);
+
+            if (this.arguments.closeOnEnd) {
+                await this.writer.close();
+            }
+        };
+
+        // If a cron expression is given, call the helper function which will
+        // wrap the current result inside a scheduler.
+        if (this.arguments.cron) {
+            executeAllRequests = cronify(
+                executeAllRequests,
+                this.arguments.cron,
+                this.arguments.runOnInit,
+            );
+        }
+
+        return await executeAllRequests();
+    }
+
+    /**
+     * Executes a single request and streams the result to the writer.
+     * @param req The request to execute.
+     * @throws HttpUtilsError
+     */
+    async executeRequest(
+        this: HttpFetchArgs & this,
+        req: Request,
+    ): Promise<void> {
+        this.logger.debug(`Executing request to '${req.url}'...`);
 
         // Authentication the request before executing it. We do this every time
         // to assure credentials don't expire.
-        if (auth) {
-            await auth.authorize(req);
+        if (this.auth) {
+            await this.auth.authorize(req);
         }
 
         // Initialize the fetch promise.
@@ -143,19 +201,22 @@ export async function httpFetch(
         });
 
         // Wrap the fetch promise in a timeout and execute.
-        const res = await timeout(args.timeOutMilliseconds, fetchPromise).catch(
-            (err) => {
-                if (err === "timeout") {
-                    throw HttpUtilsError.timeOutError(args.timeOutMilliseconds);
-                } else {
-                    throw err;
-                }
-            },
-        );
+        const res = await timeout(
+            this.arguments.timeOutMilliseconds,
+            fetchPromise,
+        ).catch((err) => {
+            if (err === "timeout") {
+                throw HttpUtilsError.timeOutError(
+                    this.arguments.timeOutMilliseconds,
+                );
+            } else {
+                throw err;
+            }
+        });
 
         // Check if we accept the status code.
-        if (!statusCodeAccepted(res.status, args.acceptStatusCodes)) {
-            if (res.status === 401 && auth) {
+        if (!statusCodeAccepted(res.status, this.arguments.acceptStatusCodes)) {
+            if (res.status === 401 && this.auth) {
                 throw HttpUtilsError.credentialIssue();
             } else if (res.status === 401) {
                 throw HttpUtilsError.unauthorizedError();
@@ -167,14 +228,14 @@ export async function httpFetch(
         // Special case: if the body is empty. We either throw an error or exit
         // early. Make sure to close the writer if required.
         if (!res.body) {
-            if (!args.bodyCanBeEmpty) {
+            if (!this.arguments.bodyCanBeEmpty) {
                 throw HttpUtilsError.noBodyInResponse();
             }
 
             // We can assume that closeOnEnd is false when a cron expression is
             // set due to earlier sanity checks.
-            if (!args.cron && args.closeOnEnd) {
-                await writer.end();
+            if (!this.arguments.cron && this.arguments.closeOnEnd) {
+                await this.writer.close();
             }
 
             return;
@@ -182,49 +243,12 @@ export async function httpFetch(
 
         // Push the data down the pipeline.
         try {
-            const body = args.outputAsBuffer 
-                ? Buffer.from(await res.arrayBuffer())
-                : await res.text();
-            await writer.push(body);
+            const body = this.arguments.outputAsBuffer
+                ? { buffer: Buffer.from(await res.arrayBuffer()) }
+                : { string: await res.text() };
+            await this.writer.any(body);
         } catch (e) {
             console.error(e);
         }
-    };
-
-    // Executes each individual request and groups them into a single promise.
-    // Note that we use Promise.all over Promise.allSettled, which means a
-    // single rejected promise would cause the overarching promise to reject as
-    // well. Therefore, we only rethrow any potential error if `errorsAreFatal`
-    // is set. If set to false,
-    let executeAllRequests = async () => {
-        const promises = requests.map(executeRequest).map((promise) =>
-            promise.catch((err) => {
-                // Propagate error to caller if required. Otherwise, simply
-                // print to std error.
-                if (args.errorsAreFatal) {
-                    throw err;
-                } else {
-                    console.error(err);
-                }
-            }),
-        );
-
-        await Promise.all(promises);
-
-        if (args.closeOnEnd) {
-            await writer.end();
-        }
-    };
-
-    // If a cron expression is given, call the helper function which will
-    // wrap the current result inside a scheduler.
-    if (args.cron) {
-        executeAllRequests = cronify(
-            executeAllRequests,
-            args.cron,
-            args.runOnInit,
-        );
     }
-
-    return executeAllRequests;
 }

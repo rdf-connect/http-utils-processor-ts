@@ -1,37 +1,19 @@
-@prefix js: <https://w3id.org/conn/js#> .
-@prefix fno: <https://w3id.org/function/ontology#> .
-@prefix fnom: <https://w3id.org/function/vocabulary/mapping#> .
-@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
-@prefix : <https://w3id.org/conn#> .
-@prefix sh: <http://www.w3.org/ns/shacl#> .
-@prefix owl: <http://www.w3.org/2002/07/owl#> .
-@prefix dc: <http://purl.org/dc/terms/> .
+@prefix rdfc: <https://w3id.org/rdf-connect#>.
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>.
+@prefix sh: <http://www.w3.org/ns/shacl#>.
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#>.
 
-js:HttpFetch a js:JsProcess;
-    js:file <./lib/index.js>;
-    js:function "httpFetch";
-    js:location <./>;
-    js:mapping [
-        a fno:Mapping;
-        fno:parameterMapping [
-            a fnom:PositionParameterMapping ;
-            fnom:functionParameter "url";
-            fnom:implementationParameterPosition "0"^^xsd:integer
-        ], [
-           a fnom:PositionParameterMapping ;
-           fnom:functionParameter "writer";
-           fnom:implementationParameterPosition "1"^^xsd:integer
-        ], [
-            a fnom:PositionParameterMapping ;
-            fnom:functionParameter "options";
-            fnom:implementationParameterPosition "2"^^xsd:integer
-        ]
-    ].
+rdfc:HttpFetch rdfc:jsImplementationOf rdfc:Processor;
+    rdfs:label "HTTP Fetch processor";
+    rdfs:description "This processor fetches a URL and writes the response to the output channel. It supports various options such as HTTP method, headers, authentication, and scheduling with cron expressions.";
+    rdfc:file <./lib/index.js>;
+    rdfc:class "HttpFetch";
+    rdfc:entrypoint <./>.
 
 [] a sh:NodeShape;
-    sh:targetClass js:HttpFetchAuth;
+    sh:targetClass rdfc:HttpFetchAuth;
     sh:property [
-        sh:path js:type;
+        sh:path rdfc:type;
         sh:name "type";
         sh:datatype xsd:string;
         sh:minCount 1;
@@ -39,53 +21,53 @@ js:HttpFetch a js:JsProcess;
     ].
 
 [] a sh:NodeShape;
-    sh:targetClass js:HttpFetchOptions;
+    sh:targetClass rdfc:HttpFetchOptions;
     sh:property [
-        sh:path js:method;
+        sh:path rdfc:method;
         sh:name "method";
         sh:datatype xsd:string;
         sh:maxCount 1
     ], [
-        sh:path js:headers;
+        sh:path rdfc:headers;
         sh:name "headers";
         sh:datatype xsd:string
     ], [
-        sh:path js:acceptStatusCodes;
+        sh:path rdfc:acceptStatusCodes;
         sh:name "acceptStatusCodes";
         sh:datatype xsd:string
     ], [
-        sh:path js:closeOnEnd;
+        sh:path rdfc:closeOnEnd;
         sh:name "closeOnEnd";
         sh:datatype xsd:boolean;
         sh:maxCount 1
     ], [
-        sh:path js:timeOutMilliseconds;
+        sh:path rdfc:timeOutMilliseconds;
         sh:name "timeOutMilliseconds";
         sh:datatype xsd:integer;
         sh:maxCount 1
     ], [
-       sh:path js:HttpFetchAuth;
-       sh:class js:HttpFetchAuth;
+       sh:path rdfc:HttpFetchAuth;
+       sh:class rdfc:HttpFetchAuth;
        sh:name "auth";
        sh:maxCount 1
     ], [
-       sh:path js:cron;
+       sh:path rdfc:cron;
        sh:name "cron";
        sh:datatype xsd:string;
        sh:maxCount 1
     ], [
-        sh:path js:runOnInit;
+        sh:path rdfc:runOnInit;
         sh:name "runOnInit";
         sh:datatype xsd:boolean;
         sh:maxCount 1
     ], [
-       sh:path js:errorsAreFatal;
+       sh:path rdfc:errorsAreFatal;
        sh:name "errorsAreFatal";
-       sh:class xsd:boolean;
+       sh:datatype xsd:boolean;
        sh:maxCount 1;
        sh:minCount 0;
     ], [
-        sh:path js:outputAsBuffer;
+        sh:path rdfc:outputAsBuffer;
         sh:name "outputAsBuffer";
         sh:datatype xsd:boolean;
         sh:maxCount 1;
@@ -93,21 +75,21 @@ js:HttpFetch a js:JsProcess;
     ].
 
 [] a sh:NodeShape;
-    sh:targetClass js:HttpFetch;
+    sh:targetClass rdfc:HttpFetch;
     sh:property [
-        sh:path js:url;
+        sh:path rdfc:url;
         sh:name "url";
         sh:datatype xsd:string;
         sh:minCount 1
     ], [
-        sh:path js:writer;
+        sh:path rdfc:writer;
         sh:name "writer";
-        sh:class :WriterChannel;
+        sh:class rdfc:Writer;
         sh:maxCount 1;
         sh:minCount 1
     ], [
-        sh:path js:options;
+        sh:path rdfc:options;
         sh:name "options";
-        sh:class js:HttpFetchOptions;
+        sh:class rdfc:HttpFetchOptions;
         sh:maxCount 1
     ].

@@ -1,6 +1,6 @@
 {
     "name": "@rdfc/http-utils-processor-ts",
-    "version": "0.1.2",
+    "version": "1.0.1",
     "description": "HTTP util functions to be used within RDF-Connect",
     "type": "module",
     "scripts": {
@@ -24,7 +24,7 @@
     },
     "author": "Jens Pots",
     "devDependencies": {
-        "@rdfc/js-runner": "^1.0.0",
+        "@rdfc/js-runner": "^2.0.0",
         "@types/bun": "^1.2.20",
         "@types/jsdom": "^21.1.7",
         "@types/supertest": "^6.0.3",
