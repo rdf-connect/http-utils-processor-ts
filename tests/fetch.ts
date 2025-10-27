@@ -35,7 +35,7 @@ export class Fetch {
 
     public constructor() {
         this.original = global.fetch;
-        global.fetch = this.fetch;
+        global.fetch = this.fetch as unknown as typeof fetch;
     }
 
     public getArgs(): Parameters<typeof fetch> {
