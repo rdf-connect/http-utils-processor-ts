@@ -1,6 +1,6 @@
 import { expect, test, describe } from "vitest";
 import { ProcHelper } from "@rdfc/js-runner/lib/testUtils/index";
-import { HttpFetch } from "../src/index.ts";
+import { HttpFetch } from "../src";
 import { resolve } from "path";
 
 describe("http fetch", () => {
