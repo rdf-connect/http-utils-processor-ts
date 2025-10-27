@@ -102,7 +102,7 @@ class HttpFetchArguments {
  * parameters.
  * @throws HttpUtilsError
  */
-type HttpFetchArgs = {
+export type HttpFetchArgs = {
     url: string | string[];
     writer: Writer;
     options: Partial<HttpFetchArguments>;

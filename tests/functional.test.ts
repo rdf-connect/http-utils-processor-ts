@@ -8,8 +8,11 @@ import {
 } from "vitest";
 import { HttpUtilsError } from "../src/error";
 import { Fetch } from "./fetch";
-import { httpFetch } from "../src";
-import { SimpleStream } from "@rdfc/js-runner";
+import { HttpFetch, HttpFetchArgs } from "../src";
+import { createLogger, transports } from "winston";
+import { FullProc, Writer } from "@rdfc/js-runner";
+import { channel, createRunner } from "@rdfc/js-runner/lib/testUtils";
+import { HttpBasicAuth } from "../src/auth/basic";
 
 const mockFetch = new Fetch();
 
@@ -26,44 +29,53 @@ afterAll(() => {
     mockFetch.restore();
 });
 
+const logger = createLogger({
+    transports: new transports.Console({
+        level: process.env["DEBUG"] || "info",
+    }),
+});
+
+async function fromOptions(
+    options: Partial<HttpFetchArgs["options"]>,
+): Promise<FullProc<HttpFetch>> {
+    const runner = createRunner();
+    const [outputWriter, outputReader] = channel(runner, "output");
+    const o = <FullProc<HttpFetch>>new HttpFetch(
+        {
+            url: "https://example.com",
+            writer: outputWriter,
+            options,
+        },
+        logger,
+    );
+    await o.init();
+    return o;
+}
+
 describe("httpFetch - sanity checks", () => {
     test("status code - malformed range", async () => {
-        const func = httpFetch(
-            "https://example.com",
-            new SimpleStream<string>(),
-            {
+        return expect(
+            fromOptions({
                 acceptStatusCodes: ["2oo-3oo"],
-            },
-        );
-
-        return expect(func).rejects.toThrow(
-            HttpUtilsError.invalidStatusCodeRange(),
-        );
+            }),
+        ).rejects.toThrow(HttpUtilsError.invalidStatusCodeRange());
     });
 
     test("headers - malformed", async () => {
-        const func = httpFetch(
-            "https://example.com",
-            new SimpleStream<string>(),
-            {
+        return expect(
+            fromOptions({
                 headers: ["a: b", "c"],
-            },
-        );
-
-        return expect(func).rejects.toThrow(HttpUtilsError.invalidHeaders());
+            }),
+        ).rejects.toThrow(HttpUtilsError.invalidHeaders());
     });
 
     test("empty body - illegal head method", async () => {
-        const func = httpFetch(
-            "https://example.com",
-            new SimpleStream<string>(),
-            {
+        return expect(
+            fromOptions({
                 method: "HEAD",
                 bodyCanBeEmpty: false,
-            },
-        );
-
-        return expect(func).rejects.toThrow(
+            }),
+        ).rejects.toThrow(
             HttpUtilsError.illegalParameters(
                 "Cannot use HEAD method with bodyCanBeEmpty set to false",
             ),
@@ -74,27 +86,19 @@ describe("httpFetch - sanity checks", () => {
 describe("httpFetch - runtime", () => {
     test("status code - unsuccessful default", async () => {
         mockFetch.set({ status: 500 });
+        const func = await fromOptions({});
 
-        const func = await httpFetch(
-            "https://example.com",
-            new SimpleStream<string>(),
-        );
-
-        return expect(func()).rejects.toThrow(
+        return expect(func.produce()).rejects.toThrow(
             HttpUtilsError.statusCodeNotAccepted(500),
         );
     });
 
     test("status code - unsuccessful overwritten", async () => {
-        const func = await httpFetch(
-            "https://example.com",
-            new SimpleStream<string>(),
-            {
-                acceptStatusCodes: ["201"],
-            },
-        );
+        const func = await fromOptions({
+            acceptStatusCodes: ["201"],
+        });
 
-        return expect(func()).rejects.toThrow(
+        return expect(func.produce()).rejects.toThrow(
             HttpUtilsError.statusCodeNotAccepted(200),
         );
     });
@@ -102,41 +106,29 @@ describe("httpFetch - runtime", () => {
     test("status code - successful range", async () => {
         mockFetch.set({ status: 501 });
 
-        const func = await httpFetch(
-            "https://example.com",
-            new SimpleStream<string>(),
-            {
-                acceptStatusCodes: ["500-502"],
-            },
-        );
+        const func = await fromOptions({
+            acceptStatusCodes: ["500-502"],
+        });
 
-        await func();
+        await func.produce();
     });
 
     test("status code - successful single", async () => {
         mockFetch.set({ status: 500 });
 
-        const func = await httpFetch(
-            "https://example.com",
-            new SimpleStream<string>(),
-            {
-                acceptStatusCodes: ["500"],
-            },
-        );
+        const func = await fromOptions({
+            acceptStatusCodes: ["500"],
+        });
 
-        await func();
+        await func.produce();
     });
 
     test("headers - successful", async () => {
-        const func = await httpFetch(
-            "https://example.com",
-            new SimpleStream<string>(),
-            {
-                headers: ["Content-Type: text/plain", "Accept: text/plain"],
-            },
-        );
+        const func = await fromOptions({
+            headers: ["Content-Type: text/plain", "Accept: text/plain"],
+        });
 
-        await func();
+        await func.produce();
 
         const req = mockFetch.getArgs()[0]! as Request;
         expect(req).toBeDefined();
@@ -151,45 +143,115 @@ describe("httpFetch - runtime", () => {
 
     test("empty body - error", async () => {
         mockFetch.set({ nullBody: true });
+        const func = await fromOptions({
+            bodyCanBeEmpty: false,
+        });
 
-        const func = await httpFetch(
-            "https://example.com",
-            new SimpleStream<string>(),
-            {
-                bodyCanBeEmpty: false,
-            },
-        );
-
-        return expect(func()).rejects.toThrow(
+        return expect(func.produce()).rejects.toThrow(
             HttpUtilsError.noBodyInResponse(),
         );
     });
 
     test("timeout - successful", async () => {
         mockFetch.set({ timeout: 100 });
+        const func = await fromOptions({
+            timeOutMilliseconds: 500,
+        });
 
-        const func = await httpFetch(
-            "https://example.com",
-            new SimpleStream<string>(),
-            {
-                timeOutMilliseconds: 500,
-            },
-        );
-
-        await func();
+        await func.produce();
     });
 
     test("timeout - exceeded", async () => {
         mockFetch.set({ timeout: 500 });
 
-        const func = await httpFetch(
-            "https://example.com",
-            new SimpleStream<string>(),
-            {
-                timeOutMilliseconds: 100,
+        const func = await fromOptions({
+            timeOutMilliseconds: 100,
+        });
+
+        return expect(func.produce()).rejects.toThrow(
+            HttpUtilsError.timeOutError(100),
+        );
+    });
+
+    test("invalid type", async () => {
+        return expect(
+            fromOptions({
+                auth: {
+                    type: <"basic">"invalid",
+                    username: "admin",
+                    password: "password",
+                },
+            }),
+        ).rejects.toThrow(
+            HttpUtilsError.illegalParameters("Unknown auth type: 'invalid'"),
+        );
+    });
+
+    test("successful", async () => {
+        mockFetch.set({ credentials: new HttpBasicAuth("admin", "password") });
+
+        const func = await fromOptions({
+            auth: {
+                type: "basic",
+                username: "admin",
+                password: "password",
             },
+        });
+
+        return expect(func.produce()).resolves.toBeUndefined();
+    });
+
+    test("invalid credentials", async () => {
+        mockFetch.set({ credentials: new HttpBasicAuth("admin", "password") });
+
+        const func = await fromOptions({
+            auth: {
+                type: "basic",
+                username: "admin",
+                password: "invalid",
+            },
+        });
+
+        return expect(func.produce()).rejects.toThrow(
+            HttpUtilsError.credentialIssue(),
+        );
+    });
+
+    test("no credentials", async () => {
+        mockFetch.set({ credentials: new HttpBasicAuth("admin", "password") });
+
+        const func = await fromOptions({});
+
+        return expect(func.produce()).rejects.toThrow(
+            HttpUtilsError.unauthorizedError(),
+        );
+    });
+
+    test("incomplete config", async () => {
+        await expect(
+            fromOptions({
+                auth: {
+                    type: "basic",
+                    password: "password",
+                },
+            }),
+        ).rejects.toThrow(
+            HttpUtilsError.illegalParameters(
+                "Username is required for HTTP Basic Auth.",
+            ),
         );
 
-        return expect(func()).rejects.toThrow(HttpUtilsError.timeOutError(100));
+        await expect(
+            fromOptions({
+                auth: {
+                    type: "basic",
+                    username: "username",
+                },
+            }),
+        ).rejects.toThrow(
+            HttpUtilsError.illegalParameters(
+                "Password is required for HTTP Basic Auth.",
+            ),
+        );
     });
 });
