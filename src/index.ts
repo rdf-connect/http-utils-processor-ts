@@ -5,6 +5,7 @@ import { statusCodeAccepted } from "./util/status";
 import { parseHeaders } from "./util/headers";
 import { Auth, AuthConfig } from "./auth";
 import { cronify } from "./util/cronify";
+import { readResponseAsStream } from "./util/response";
 
 /**
  * An instance of this class defines how the process should execute a request
@@ -51,6 +52,9 @@ class HttpFetchArguments {
 
     // If set, the output will be returned as a buffer instead of a string.
     public readonly outputAsBuffer: boolean = false;
+
+    // If set, the output will be returned as a stream instead of single string/buffer.
+    public readonly outputAsStream: boolean = false;
 
     /**
      * Construct a new HttpFetchArgs object by overwriting specific fields.
@@ -243,10 +247,14 @@ export class HttpFetch extends Processor<HttpFetchArgs> {
 
         // Push the data down the pipeline.
         try {
-            const body = this.arguments.outputAsBuffer
-                ? { buffer: Buffer.from(await res.arrayBuffer()) }
-                : { string: await res.text() };
-            await this.writer.any(body);
+            if (this.arguments.outputAsStream) {
+                await this.writer.stream(readResponseAsStream(res));
+            } else {
+                const body = this.arguments.outputAsBuffer
+                    ? { buffer: Buffer.from(await res.arrayBuffer()) }
+                    : { string: await res.text() };
+                await this.writer.any(body);
+            }
         } catch (e) {
             console.error(e);
         }

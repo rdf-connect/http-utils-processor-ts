@@ -254,4 +254,39 @@ describe("httpFetch - runtime", () => {
             ),
         );
     });
+
+    test("output as stream", async () => {
+        const runner = createRunner();
+        const [outputWriter, outputReader] = channel(runner, "output");
+        const func = <FullProc<HttpFetch>>new HttpFetch(
+            {
+                url: "https://example.com",
+                writer: outputWriter,
+                options: {
+                    outputAsStream: true,
+                },
+            },
+            logger,
+        );
+
+        mockFetch.set({ status: 200 });
+        await func.init();
+
+        const sts = (async () => {
+            const chunks: Uint8Array[] = [];
+            for await (const stream of outputReader.streams()) {
+                for await (const chunk of stream) {
+                    chunks.push(chunk);
+                }
+            }
+            return chunks;
+        })();
+
+        await func.produce();
+
+        const chunks = await sts;
+        expect(chunks.length).toBeGreaterThan(0);
+        const outputString = Buffer.concat(chunks).toString();
+        expect(outputString).toEqual("Hello, World!");
+    });
 });
