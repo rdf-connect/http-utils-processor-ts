@@ -43,7 +43,7 @@
         "eslint-config-prettier": "^10.1.8",
         "globals": "^17.7.0",
         "jsdom": "^28.1.0",
-        "prettier": "3.8.4",
+        "prettier": "3.9.3",
         "supertest": "^7.2.2",
         "tsc-alias": "^1.8.17",
         "typescript": "^5.9.3",
