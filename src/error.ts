@@ -15,6 +15,8 @@ enum HttpUtilsErrorType {
     CredentialIssue,
     OAuth2TokenError,
     InvalidCronExpression,
+    InvalidPort,
+    ServerError,
 }
 
 /**
@@ -111,5 +113,16 @@ export class HttpUtilsError extends Error {
             "The provided cron job expression is invalid",
             HttpUtilsErrorType.InvalidCronExpression,
         );
+    }
+
+    static invalidPort(port: number) {
+        return new HttpUtilsError(
+            `Invalid port '${port}'. Must be an integer between 0 and 65535.`,
+            HttpUtilsErrorType.InvalidPort,
+        );
+    }
+
+    static serverError(message: string) {
+        return new HttpUtilsError(message, HttpUtilsErrorType.ServerError);
     }
 }

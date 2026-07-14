@@ -12,7 +12,8 @@
     },
     "files": [
         "lib/**/*",
-        "./processors.ttl"
+        "./processors.ttl",
+        "./server.ttl"
     ],
     "keywords": [
         "HTTP",
