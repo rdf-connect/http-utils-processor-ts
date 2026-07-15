@@ -32,6 +32,11 @@ rdfc:HttpServer rdfc:jsImplementationOf rdfc:Processor;
     sh:name "successStatusCode";
     sh:datatype xsd:integer;
     sh:maxCount 1;
+  ], [
+    sh:path rdfc:streamThresholdBytes;
+    sh:name "streamThresholdBytes";
+    sh:datatype xsd:integer;
+    sh:maxCount 1;
   ].
 
 [ ] a sh:NodeShape;

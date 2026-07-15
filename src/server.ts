@@ -3,58 +3,80 @@ import * as http from "http";
 import { AddressInfo } from "net";
 import { HttpUtilsError } from "./error";
 
+// Bodies larger than this are streamed to the writer chunk-by-chunk instead
+// of being buffered in memory, at the cost of a round-trip per chunk.
+const DEFAULT_STREAM_THRESHOLD_BYTES = 5 * 1024 * 1024;
+
+type HttpServerArguments = {
+    host: string;
+    method: string;
+    path: string;
+    successStatusCode: number;
+    streamThresholdBytes: number;
+};
+
+function intoServerArguments(
+    args: Partial<HttpServerArguments>,
+): HttpServerArguments {
+    const out: HttpServerArguments = {
+        host: args.host ?? "0.0.0.0",
+        method: args.method ?? "POST",
+        path: args.path ?? "/",
+        successStatusCode: args.successStatusCode ?? 200,
+        streamThresholdBytes:
+            args.streamThresholdBytes ?? DEFAULT_STREAM_THRESHOLD_BYTES,
+    };
+
+    if (!out.method) {
+        throw HttpUtilsError.illegalParameters("Method cannot be empty.");
+    }
+
+    // Sanity check: the path must start with a slash.
+    if (!out.path.startsWith("/")) {
+        throw HttpUtilsError.illegalParameters(
+            `Path must start with '/', got '${out.path}'.`,
+        );
+    }
+
+    // Sanity check: the status code must be a valid HTTP status code.
+    if (
+        !Number.isInteger(out.successStatusCode) ||
+        out.successStatusCode < 100 ||
+        out.successStatusCode > 599
+    ) {
+        throw HttpUtilsError.illegalParameters(
+            `Invalid status code '${out.successStatusCode}'. Must be an integer between 100 and 599.`,
+        );
+    }
+
+    // Sanity check: the streaming threshold must be a non-negative integer.
+    if (
+        !Number.isInteger(out.streamThresholdBytes) ||
+        out.streamThresholdBytes < 0
+    ) {
+        throw HttpUtilsError.illegalParameters(
+            `Invalid streamThresholdBytes '${out.streamThresholdBytes}'. Must be a non-negative integer.`,
+        );
+    }
+
+    return out;
+}
+
 /**
- * An instance of this class defines how the HTTP server should behave. All
- * fields are optional and contain default values.
+ * Continues an async iterator that's already had some values pulled off it,
+ * replaying those first before yielding the rest. Used to switch a request
+ * body from buffering to streaming partway through without losing bytes
+ * already read.
  */
-class HttpServerArguments {
-    // The address the server binds to. Defaults to `0.0.0.0` so the server is
-    // reachable from outside its (Docker) container. Use `127.0.0.1` to only
-    // accept connections from the local machine.
-    public readonly host: string = "0.0.0.0";
-
-    // The HTTP method that is accepted. Requests using any other method are
-    // rejected with `405 Method Not Allowed`. Compared case-insensitively.
-    public readonly method: string = "POST";
-
-    // The path that is accepted. Requests to any other path are rejected with
-    // `404 Not Found`.
-    public readonly path: string = "/";
-
-    // The status code returned to the client after the body has been
-    // successfully written to the output channel.
-    public readonly successStatusCode: number = 200;
-
-    /**
-     * Construct a new HttpServerArguments object by overwriting specific fields.
-     * @param partial An object which may contain any fields of the class, which
-     * will overwrite the default values.
-     */
-    constructor(partial: Partial<HttpServerArguments>) {
-        Object.assign(this, partial);
-
-        // Sanity check: the method must be a non-empty string.
-        if (!this.method) {
-            throw HttpUtilsError.illegalParameters("Method cannot be empty.");
-        }
-
-        // Sanity check: the path must start with a slash.
-        if (!this.path.startsWith("/")) {
-            throw HttpUtilsError.illegalParameters(
-                `Path must start with '/', got '${this.path}'.`,
-            );
-        }
-
-        // Sanity check: the status code must be a valid HTTP status code.
-        if (
-            !Number.isInteger(this.successStatusCode) ||
-            this.successStatusCode < 100 ||
-            this.successStatusCode > 599
-        ) {
-            throw HttpUtilsError.illegalParameters(
-                `Invalid status code '${this.successStatusCode}'. Must be an integer between 100 and 599.`,
-            );
-        }
+async function* continueAsStream(
+    buffered: Buffer[],
+    iterator: AsyncIterator<Buffer>,
+): AsyncGenerator<Buffer> {
+    yield* buffered;
+    while (true) {
+        const { value, done } = await iterator.next();
+        if (done) return;
+        yield value;
     }
 }
 
@@ -79,6 +101,9 @@ export class HttpServer extends Processor<HttpServerArgs> {
     protected arguments: HttpServerArguments;
     // Exposed so tests can read the actually bound address when `port` is `0`.
     public server: http.Server;
+    // Acts as a semaphore of size 1: chains request processing so only one
+    // request's body is read and forwarded to the writer at a time.
+    private queue: Promise<void> = Promise.resolve();
 
     async init(this: HttpServerArgs & this): Promise<void> {
         // Validate the port. `0` is allowed and lets the OS pick a free port.
@@ -91,7 +116,7 @@ export class HttpServer extends Processor<HttpServerArgs> {
         }
 
         // Parse the options as provided by the user.
-        this.arguments = new HttpServerArguments(this.options || {});
+        this.arguments = intoServerArguments(this.options || {});
 
         // Create the server. The request handler forwards the body to the
         // writer and acknowledges the request to the client.
@@ -164,31 +189,82 @@ export class HttpServer extends Processor<HttpServerArgs> {
             return;
         }
 
-        // Collect the body and forward it to the writer.
-        const chunks: Buffer[] = [];
-        req.on("data", (chunk) => chunks.push(chunk));
-        req.on("error", (err) => {
-            this.logger.error(`Error reading request body: ${err.message}`);
+        // Queue the actual handling behind any request that's currently being
+        // processed, so at most one request is read from and forwarded to the
+        // writer at a time.
+        this.queue = this.queue.then(() => this.processRequest(req, res));
+    }
+
+    /**
+     * Reads the body of a single request and forwards it to the writer,
+     * responding to the client once that completes. Never rejects, so it's
+     * safe to chain onto the processing queue.
+     */
+    private async processRequest(
+        this: HttpServerArgs & this,
+        req: http.IncomingMessage,
+        res: http.ServerResponse,
+    ): Promise<void> {
+        try {
+            await this.forwardBody(req);
+            res.writeHead(this.arguments.successStatusCode);
+            res.end();
+        } catch (err) {
+            this.logger.error(
+                `Failed to forward request body to channel: ${(err as Error).message}`,
+            );
             res.writeHead(500);
             res.end("Internal Server Error");
-        });
-        req.on("end", () => {
-            const body = Buffer.concat(chunks).toString();
-            this.logger.debug(`Received ${body.length} bytes, forwarding.`);
+        }
+    }
 
-            this.writer
-                .string(body)
-                .then(() => {
-                    res.writeHead(this.arguments.successStatusCode);
-                    res.end();
-                })
-                .catch((err) => {
-                    this.logger.error(
-                        `Failed to write request body to channel: ${err.message}`,
-                    );
-                    res.writeHead(500);
-                    res.end("Internal Server Error");
-                });
-        });
+    /**
+     * Forwards the request body to the writer. Small bodies are buffered in
+     * memory and sent in one go; bodies at or above `streamThresholdBytes`
+     * are streamed to the writer instead, trading a round-trip per chunk for
+     * bounded memory use.
+     */
+    private async forwardBody(
+        this: HttpServerArgs & this,
+        req: http.IncomingMessage,
+    ): Promise<void> {
+        const threshold = this.arguments.streamThresholdBytes;
+
+        // Fast path: a declared Content-Length lets us decide up front,
+        // without reading anything into memory first.
+        const contentLength = Number(req.headers["content-length"]);
+        if (Number.isFinite(contentLength) && contentLength > threshold) {
+            this.logger.debug(
+                `Streaming request body (Content-Length ${contentLength} bytes).`,
+            );
+            return this.writer.stream(req);
+        }
+
+        // Otherwise buffer chunks as they arrive. If the body turns out to
+        // exceed the threshold before it ends (e.g. chunked transfer
+        // encoding with no Content-Length), switch to streaming for the
+        // remainder without losing the chunks already read.
+        const chunks: Buffer[] = [];
+        let size = 0;
+        const iterator = req[Symbol.asyncIterator]() as AsyncIterator<Buffer>;
+
+        while (true) {
+            const { value, done } = await iterator.next();
+            if (done) {
+                const body = Buffer.concat(chunks);
+                this.logger.debug(`Buffered ${body.length} bytes, forwarding.`);
+                return this.writer.buffer(body);
+            }
+
+            chunks.push(value);
+            size += value.length;
+
+            if (size > threshold) {
+                this.logger.debug(
+                    `Request body exceeded ${threshold} bytes, switching to streaming.`,
+                );
+                return this.writer.stream(continueAsStream(chunks, iterator));
+            }
+        }
     }
 }

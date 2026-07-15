@@ -112,7 +112,7 @@ from a URL, `rdfc:HttpServer` starts an HTTP server and writes the body of every
 incoming request to its output channel. This turns a pipeline into an ingestion
 endpoint that other services can push data to.
 
-Importing `processors.ttl` (as shown above) transitively imports `server.ttl`, so a
+Importing `processors.ttl` (as shown below) transitively imports `server.ttl`, so a
 single `owl:imports` makes both processors available.
 
 ### Pipeline Configuration Example
@@ -135,14 +135,15 @@ single `owl:imports` makes both processors available.
         rdfc:host "0.0.0.0";
         rdfc:method "POST";
         rdfc:path "/ingest";
-        rdfc:successStatusCode 202
+        rdfc:successStatusCode 202;
+        rdfc:streamThresholdBytes 5242880
     ].
 ```
 
 ### Parameters of `rdfc:HttpServer`:
 
 - `rdfc:port` (**integer**, required): Port to listen on. Use `0` to let the OS assign a free port.
-- `rdfc:writer` (**rdfc:Writer**, required): Output channel that receives each request body as a string.
+- `rdfc:writer` (**rdfc:Writer**, required): Output channel that receives each request body. Requests are handled one at a time.
 - `rdfc:options` (**rdfc:HttpServerOptions**, optional): Additional settings (see below).
 
 ### Parameters of `rdfc:HttpServerOptions`:
@@ -151,6 +152,7 @@ single `owl:imports` makes both processors available.
 - `rdfc:method` (**string**, optional): Accepted HTTP method (default: `POST`). Requests using any other method receive `405 Method Not Allowed`.
 - `rdfc:path` (**string**, optional): Accepted request path (default: `/`). Requests to any other path receive `404 Not Found`.
 - `rdfc:successStatusCode` (**integer**, optional): Status code returned to clients after the body is successfully written (default: `200`).
+- `rdfc:streamThresholdBytes` (**integer**, optional): Body size, in bytes, above which the request is streamed to the writer instead of buffered in memory (default: `5242880`, i.e. 5MB). Applies whether the size is known up front via `Content-Length` or only discovered while reading a body with no declared length (e.g. chunked transfer encoding).
 
 ---
 

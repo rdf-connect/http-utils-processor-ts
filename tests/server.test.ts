@@ -1,6 +1,7 @@
 import { describe, expect, test } from "vitest";
 import { once } from "events";
 import { AddressInfo } from "net";
+import * as http from "http";
 import { resolve } from "path";
 import { createLogger, transports } from "winston";
 import { FullProc, Reader } from "@rdfc/js-runner";
@@ -155,6 +156,84 @@ describe("httpServer - runtime", () => {
             });
 
             expect(res.status).toBe(404);
+        } finally {
+            proc.server.close();
+        }
+    });
+});
+
+describe("httpServer - streaming threshold", () => {
+    test("small body stays under the threshold and is buffered", async () => {
+        const { proc, reader, address } = await startServer({
+            streamThresholdBytes: 1024,
+        });
+
+        try {
+            const received = collect(reader);
+            const res = await fetch(`http://127.0.0.1:${address.port}/`, {
+                method: "POST",
+                body: "small body",
+            });
+
+            expect(res.status).toBe(200);
+            expect(received).toEqual(["small body"]);
+        } finally {
+            proc.server.close();
+        }
+    });
+
+    test("large body with a known Content-Length is streamed", async () => {
+        const { proc, reader, address } = await startServer({
+            streamThresholdBytes: 1024,
+        });
+
+        try {
+            const received = collect(reader);
+            const body = "a".repeat(5000);
+
+            const res = await fetch(`http://127.0.0.1:${address.port}/`, {
+                method: "POST",
+                body,
+            });
+
+            expect(res.status).toBe(200);
+            expect(received).toEqual([body]);
+        } finally {
+            proc.server.close();
+        }
+    });
+
+    test("large chunked body without Content-Length switches to streaming mid-request", async () => {
+        const { proc, reader, address } = await startServer({
+            streamThresholdBytes: 1024,
+        });
+
+        try {
+            const received = collect(reader);
+
+            await new Promise<void>((resolvePromise, rejectPromise) => {
+                const req = http.request(
+                    {
+                        host: "127.0.0.1",
+                        port: address.port,
+                        method: "POST",
+                        headers: { "Transfer-Encoding": "chunked" },
+                    },
+                    (res) => {
+                        res.resume();
+                        res.on("end", resolvePromise);
+                    },
+                );
+                req.on("error", rejectPromise);
+                // Written as separate chunks with no Content-Length header,
+                // forcing the buffer-then-switch fallback path.
+                for (let i = 0; i < 20; i++) {
+                    req.write("b".repeat(200));
+                }
+                req.end();
+            });
+
+            expect(received).toEqual(["b".repeat(4000)]);
         } finally {
             proc.server.close();
         }
