@@ -192,13 +192,22 @@ export class HttpServer extends Processor<HttpServerArgs> {
         // Queue the actual handling behind any request that's currently being
         // processed, so at most one request is read from and forwarded to the
         // writer at a time.
-        this.queue = this.queue.then(() => this.processRequest(req, res));
+        this.queue = this.queue
+            .then(() => this.processRequest(req, res))
+            // Guard the chain itself: a rejection here would skip every
+            // subsequent `then`, silently wedging the server.
+            .catch((err) => {
+                this.logger.error(
+                    `Failed to handle request: ${(err as Error).message}`,
+                );
+            });
     }
 
     /**
      * Reads the body of a single request and forwards it to the writer,
-     * responding to the client once that completes. Never rejects, so it's
-     * safe to chain onto the processing queue.
+     * responding to the client once that completes. Failures to forward are
+     * reported to the client as a 500; anything else (e.g. writing to a
+     * response whose client already went away) is caught by the queue.
      */
     private async processRequest(
         this: HttpServerArgs & this,
