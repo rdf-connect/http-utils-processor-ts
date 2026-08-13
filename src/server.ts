@@ -99,6 +99,7 @@ export type HttpServerArgs = {
 
 export class HttpServer extends Processor<HttpServerArgs> {
     protected arguments: HttpServerArguments;
+    protected closing = false;
     // Exposed so tests can read the actually bound address when `port` is `0`.
     public server: http.Server;
     // Acts as a semaphore of size 1: chains request processing so only one
@@ -142,11 +143,13 @@ export class HttpServer extends Processor<HttpServerArgs> {
             // Close the server gracefully when the pipeline is canceled, which
             // resolves this promise.
             this.writer.on("cancel", () => {
+                this.server.closeIdleConnections();
                 this.server.close();
+                this.closing = true;
             });
 
             this.server.on("close", () => {
-                resolve();
+                this.writer.close().then(resolve);
             });
 
             this.server.listen(this.port, this.arguments.host, () => {
@@ -224,6 +227,10 @@ export class HttpServer extends Processor<HttpServerArgs> {
             );
             res.writeHead(500);
             res.end("Internal Server Error");
+        }
+
+        if (this.closing) {
+            this.server.closeIdleConnections();
         }
     }
 
