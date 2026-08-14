@@ -149,7 +149,7 @@ export class HttpServer extends Processor<HttpServerArgs> {
             });
 
             this.server.on("close", () => {
-                this.writer.close().then(resolve);
+                this.writer.close().finally(resolve);
             });
 
             this.server.listen(this.port, this.arguments.host, () => {
