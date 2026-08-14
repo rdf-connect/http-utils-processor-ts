@@ -2,6 +2,10 @@
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>.
 @prefix sh: <http://www.w3.org/ns/shacl#>.
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#>.
+@prefix owl: <http://www.w3.org/2002/07/owl#>.
+
+### The HTTP Server processor is defined in a separate file.
+<> owl:imports <./server.ttl>.
 
 rdfc:HttpFetch rdfc:jsImplementationOf rdfc:Processor;
   rdfs:label "HTTP Fetch processor";

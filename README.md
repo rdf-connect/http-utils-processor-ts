@@ -105,6 +105,57 @@ Supported types:
 
 ---
 
+## HTTP Server (`rdfc:HttpServer`)
+
+The package also provides the inverse of `rdfc:HttpFetch`: instead of pulling data
+from a URL, `rdfc:HttpServer` starts an HTTP server and writes the body of every
+incoming request to its output channel. This turns a pipeline into an ingestion
+endpoint that other services can push data to.
+
+Importing `processors.ttl` (as shown below) transitively imports `server.ttl`, so a
+single `owl:imports` makes both processors available.
+
+### Pipeline Configuration Example
+
+```turtle
+@prefix rdfc: <https://w3id.org/rdf-connect#>.
+@prefix owl: <http://www.w3.org/2002/07/owl#>.
+
+### Import the processor definitions
+<> owl:imports <./node_modules/@rdfc/http-utils-processor-ts/processors.ttl>.
+
+### Define the channel the server writes incoming bodies to
+<in> a rdfc:Writer.
+
+### Define and configure the server
+<server> a rdfc:HttpServer;
+    rdfc:port 8080;
+    rdfc:writer <in>;
+    rdfc:options [
+        rdfc:host "0.0.0.0";
+        rdfc:method "POST";
+        rdfc:path "/ingest";
+        rdfc:successStatusCode 202;
+        rdfc:streamThresholdBytes 5242880
+    ].
+```
+
+### Parameters of `rdfc:HttpServer`:
+
+- `rdfc:port` (**integer**, required): Port to listen on. Use `0` to let the OS assign a free port.
+- `rdfc:writer` (**rdfc:Writer**, required): Output channel that receives each request body. Requests are handled one at a time.
+- `rdfc:options` (**rdfc:HttpServerOptions**, optional): Additional settings (see below).
+
+### Parameters of `rdfc:HttpServerOptions`:
+
+- `rdfc:host` (**string**, optional): Bind address (default: `0.0.0.0`). The default makes the server reachable from outside a Docker container; use `127.0.0.1` to only accept local connections.
+- `rdfc:method` (**string**, optional): Accepted HTTP method (default: `POST`). Requests using any other method receive `405 Method Not Allowed`.
+- `rdfc:path` (**string**, optional): Accepted request path (default: `/`). Requests to any other path receive `404 Not Found`.
+- `rdfc:successStatusCode` (**integer**, optional): Status code returned to clients after the body is successfully written (default: `200`).
+- `rdfc:streamThresholdBytes` (**integer**, optional): Body size, in bytes, above which the request is streamed to the writer instead of buffered in memory (default: `5242880`, i.e. 5MB). Applies whether the size is known up front via `Content-Length` or only discovered while reading a body with no declared length (e.g. chunked transfer encoding).
+
+---
+
 ## Errors
 
 All errors thrown are of type `HttpFetchError` and include a `HttpUtilsErrorType` enum describing the error nature.

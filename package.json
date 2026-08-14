@@ -1,6 +1,6 @@
 {
     "name": "@rdfc/http-utils-processor-ts",
-    "version": "1.1.0",
+    "version": "1.2.0-alpha.1",
     "description": "HTTP util functions to be used within RDF-Connect",
     "type": "module",
     "scripts": {
@@ -12,7 +12,8 @@
     },
     "files": [
         "lib/**/*",
-        "./processors.ttl"
+        "./processors.ttl",
+        "./server.ttl"
     ],
     "keywords": [
         "HTTP",
