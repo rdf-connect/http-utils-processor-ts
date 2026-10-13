@@ -44,6 +44,7 @@ const defaultOptions: HttpFetchArgs["options"] = {
     errorsAreFatal: true,
     outputAsBuffer: false,
     outputAsStream: false,
+    closeOnEnd: false,
 };
 
 async function fromOptions(
@@ -277,6 +278,7 @@ describe("httpFetch - runtime", () => {
                 options: {
                     ...defaultOptions,
                     outputAsStream: true,
+                    closeOnEnd: true,
                 },
             },
             logger,

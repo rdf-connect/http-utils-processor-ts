@@ -53,6 +53,7 @@ describe("http fetch", () => {
             method: "GET",
             headers: [],
             acceptStatusCodes: ["200-300"],
+            closeOnEnd: false,
             runOnInit: false,
             errorsAreFatal: true,
             outputAsBuffer: false,
@@ -87,10 +88,41 @@ describe("http fetch", () => {
             method: "POST",
             headers: [],
             acceptStatusCodes: ["200-300"],
+            closeOnEnd: false,
             runOnInit: false,
             errorsAreFatal: true,
             outputAsBuffer: false,
             outputAsStream: true,
         });
+    });
+
+    test("does not close on end by default", async () => {
+        const closeOnEnd = async (options: string) => {
+            const helper = new ProcHelper<HttpFetch>();
+            await helper.importFile(resolve("./processors.ttl"));
+            await helper.importInline(
+                resolve("./pipeline.ttl"),
+                `
+                @prefix rdfc: <https://w3id.org/rdf-connect#>.
+
+                <http://example.com/ns#processor> a rdfc:HttpFetch;
+                    rdfc:url "http://example.com";
+                    rdfc:writer <jw>;
+                    rdfc:options [ ${options} ].
+            `,
+            );
+
+            helper.getConfig("HttpFetch");
+            const proc = await helper.getProcessor(
+                "http://example.com/ns#processor",
+            );
+            await proc.init();
+            return (<{ arguments: { closeOnEnd: boolean } }>(<unknown>proc))
+                .arguments.closeOnEnd;
+        };
+
+        expect(await closeOnEnd("")).toBe(false);
+        expect(await closeOnEnd('rdfc:cron "0 * * * * *"')).toBe(false);
+        expect(await closeOnEnd("rdfc:closeOnEnd true")).toBe(true);
     });
 });
