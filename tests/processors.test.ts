@@ -39,6 +39,31 @@ describe("http fetch", () => {
         expect(proc.writer.constructor.name).toBe("WriterInstance");
     });
 
+    test("URLs can be written as IRIs", async () => {
+        const helper = new ProcHelper<HttpFetch>();
+        await helper.importFile(resolve("./processors.ttl"));
+        await helper.importInline(
+            resolve("./pipeline.ttl"),
+            `
+            @prefix rdfc: <https://w3id.org/rdf-connect#>.
+
+            <http://example.com/ns#processor> a rdfc:HttpFetch;
+                rdfc:url <http://example.com/a>, "http://example.com/b";
+                rdfc:writer <jw>.
+        `,
+        );
+
+        helper.getConfig("HttpFetch");
+        const proc = await helper.getProcessor(
+            "http://example.com/ns#processor",
+        );
+
+        expect([...proc.url].sort()).toEqual([
+            "http://example.com/a",
+            "http://example.com/b",
+        ]);
+    });
+
     test("falls back to its default values", async () => {
         const helper = new ProcHelper<HttpFetch>();
         await helper.importFile(resolve("./processors.ttl"));
