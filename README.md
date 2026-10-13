@@ -63,7 +63,7 @@ npm install @rdfc/http-utils-processor-ts
 
 ### Parameters of `rdfc:HttpFetch`:
 
-- `rdfc:url` (**string**, required): URL(s) to fetch. Can be a single string or an array of strings.
+- `rdfc:url` (**string** or IRI, required): URL(s) to fetch. Can be given more than once to fetch several URLs.
 - `rdfc:writer` (**rdfc:Writer**, required): Output channel to write the fetched response.
 - `rdfc:options` (**rdfc:HttpFetchOptions**, optional): Optional settings including method, headers, timeout, authentication, cron, and more.
 

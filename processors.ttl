@@ -96,7 +96,8 @@ rdfc:HttpFetch rdfc:jsImplementationOf rdfc:Processor;
   sh:property [
     sh:path rdfc:url;
     sh:name "url";
-    sh:datatype xsd:string;
+    sh:nodeKind sh:IRIOrLiteral;
+    sh:codeType xsd:string;
     sh:minCount 1;
   ], [
     sh:path rdfc:writer;
