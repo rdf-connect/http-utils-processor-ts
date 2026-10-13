@@ -81,6 +81,7 @@ npm install @rdfc/http-utils-processor-ts
 - `rdfc:runOnInit` (**boolean**, optional): Run immediately upon initialization if cron is set (default: `false`).
 - `rdfc:errorsAreFatal` (**boolean**, optional): Exit on fetch errors (default: `true`).
 - `rdfc:outputAsBuffer` (**boolean**, optional): Whether the response is returned as a buffer (default: `false`).
+- `rdfc:outputAsStream` (**boolean**, optional): Whether the response is returned as a stream instead of a single string or buffer (default: `false`).
 
 ---
 

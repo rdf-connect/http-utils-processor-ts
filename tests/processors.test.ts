@@ -38,4 +38,59 @@ describe("http fetch", () => {
 
         expect(proc.writer.constructor.name).toBe("WriterInstance");
     });
+
+    test("falls back to its default values", async () => {
+        const helper = new ProcHelper<HttpFetch>();
+        await helper.importFile(resolve("./processors.ttl"));
+        await helper.importInline(resolve("./pipeline.ttl"), pipeline);
+
+        helper.getConfig("HttpFetch");
+        const proc = await helper.getProcessor(
+            "http://example.com/ns#processor",
+        );
+
+        expect(proc.options).toEqual({
+            method: "GET",
+            headers: [],
+            acceptStatusCodes: ["200-300"],
+            runOnInit: false,
+            errorsAreFatal: true,
+            outputAsBuffer: false,
+            outputAsStream: false,
+        });
+    });
+
+    test("falls back to its default values for missing options", async () => {
+        const helper = new ProcHelper<HttpFetch>();
+        await helper.importFile(resolve("./processors.ttl"));
+        await helper.importInline(
+            resolve("./pipeline.ttl"),
+            `
+            @prefix rdfc: <https://w3id.org/rdf-connect#>.
+
+            <http://example.com/ns#processor> a rdfc:HttpFetch;
+                rdfc:url "http://example.com";
+                rdfc:writer <jw>;
+                rdfc:options [
+                    rdfc:method "POST";
+                    rdfc:outputAsStream true
+                ].
+        `,
+        );
+
+        helper.getConfig("HttpFetch");
+        const proc = await helper.getProcessor(
+            "http://example.com/ns#processor",
+        );
+
+        expect(proc.options).toEqual({
+            method: "POST",
+            headers: [],
+            acceptStatusCodes: ["200-300"],
+            runOnInit: false,
+            errorsAreFatal: true,
+            outputAsBuffer: false,
+            outputAsStream: true,
+        });
+    });
 });

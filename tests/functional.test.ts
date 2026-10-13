@@ -35,9 +35,21 @@ const logger = createLogger({
     }),
 });
 
+// The defaults declared in processors.ttl, which the runner fills in.
+const defaultOptions: HttpFetchArgs["options"] = {
+    method: "GET",
+    headers: [],
+    acceptStatusCodes: ["200-300"],
+    runOnInit: false,
+    errorsAreFatal: true,
+    outputAsBuffer: false,
+    outputAsStream: false,
+};
+
 async function fromOptions(
-    options: Partial<HttpFetchArgs["options"]>,
+    partial: Partial<HttpFetchArgs["options"]>,
 ): Promise<FullProc<HttpFetch>> {
+    const options = { ...defaultOptions, ...partial };
     const runner = createRunner();
     const [outputWriter, outputReader] = channel(runner, "output");
     const o = <FullProc<HttpFetch>>new HttpFetch(
@@ -263,6 +275,7 @@ describe("httpFetch - runtime", () => {
                 url: "https://example.com",
                 writer: outputWriter,
                 options: {
+                    ...defaultOptions,
                     outputAsStream: true,
                 },
             },
