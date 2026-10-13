@@ -29,6 +29,7 @@ rdfc:HttpFetch rdfc:jsImplementationOf rdfc:Processor;
   sh:property [
     sh:path rdfc:method;
     sh:name "method";
+    sh:defaultValue "GET";
     sh:datatype xsd:string;
     sh:maxCount 1;
   ], [
@@ -38,10 +39,12 @@ rdfc:HttpFetch rdfc:jsImplementationOf rdfc:Processor;
   ], [
     sh:path rdfc:acceptStatusCodes;
     sh:name "acceptStatusCodes";
+    sh:defaultValue "200-300";
     sh:datatype xsd:string;
   ], [
     sh:path rdfc:closeOnEnd;
     sh:name "closeOnEnd";
+    sh:defaultValue false;
     sh:datatype xsd:boolean;
     sh:maxCount 1;
   ], [
@@ -62,23 +65,27 @@ rdfc:HttpFetch rdfc:jsImplementationOf rdfc:Processor;
   ], [
     sh:path rdfc:runOnInit;
     sh:name "runOnInit";
+    sh:defaultValue false;
     sh:datatype xsd:boolean;
     sh:maxCount 1;
   ], [
     sh:path rdfc:errorsAreFatal;
     sh:name "errorsAreFatal";
+    sh:defaultValue true;
     sh:datatype xsd:boolean;
     sh:maxCount 1;
     sh:minCount 0;
   ], [
     sh:path rdfc:outputAsBuffer;
     sh:name "outputAsBuffer";
+    sh:defaultValue false;
     sh:datatype xsd:boolean;
     sh:maxCount 1;
     sh:minCount 0;
   ], [
     sh:path rdfc:outputAsStream;
     sh:name "outputAsStream";
+    sh:defaultValue false;
     sh:datatype xsd:boolean;
     sh:maxCount 1;
     sh:minCount 0;
@@ -89,7 +96,8 @@ rdfc:HttpFetch rdfc:jsImplementationOf rdfc:Processor;
   sh:property [
     sh:path rdfc:url;
     sh:name "url";
-    sh:datatype xsd:string;
+    sh:nodeKind sh:IRIOrLiteral;
+    sh:codeType xsd:string;
     sh:minCount 1;
   ], [
     sh:path rdfc:writer;
@@ -100,6 +108,7 @@ rdfc:HttpFetch rdfc:jsImplementationOf rdfc:Processor;
   ], [
     sh:path rdfc:options;
     sh:name "options";
+    sh:defaultValue [ ];
     sh:class rdfc:HttpFetchOptions;
     sh:maxCount 1;
   ].
