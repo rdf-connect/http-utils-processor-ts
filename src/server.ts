@@ -3,29 +3,20 @@ import * as http from "http";
 import { AddressInfo } from "net";
 import { HttpUtilsError } from "./error";
 
-// Bodies larger than this are streamed to the writer chunk-by-chunk instead
-// of being buffered in memory, at the cost of a round-trip per chunk.
-const DEFAULT_STREAM_THRESHOLD_BYTES = 5 * 1024 * 1024;
-
+// The defaults of these options are declared in `server.ttl`.
 type HttpServerArguments = {
     host: string;
     method: string;
     path: string;
     successStatusCode: number;
+    // Bodies larger than this are streamed to the writer chunk-by-chunk
+    // instead of being buffered in memory, at the cost of a round-trip per
+    // chunk.
     streamThresholdBytes: number;
 };
 
-function intoServerArguments(
-    args: Partial<HttpServerArguments>,
-): HttpServerArguments {
-    const out: HttpServerArguments = {
-        host: args.host ?? "0.0.0.0",
-        method: args.method ?? "POST",
-        path: args.path ?? "/",
-        successStatusCode: args.successStatusCode ?? 200,
-        streamThresholdBytes:
-            args.streamThresholdBytes ?? DEFAULT_STREAM_THRESHOLD_BYTES,
-    };
+function intoServerArguments(args: HttpServerArguments): HttpServerArguments {
+    const out: HttpServerArguments = { ...args };
 
     if (!out.method) {
         throw HttpUtilsError.illegalParameters("Method cannot be empty.");
@@ -94,7 +85,7 @@ async function* continueAsStream(
 export type HttpServerArgs = {
     port: number;
     writer: Writer;
-    options: Partial<HttpServerArguments>;
+    options: HttpServerArguments;
 };
 
 export class HttpServer extends Processor<HttpServerArgs> {
@@ -117,7 +108,7 @@ export class HttpServer extends Processor<HttpServerArgs> {
         }
 
         // Parse the options as provided by the user.
-        this.arguments = intoServerArguments(this.options || {});
+        this.arguments = intoServerArguments(this.options);
 
         // Create the server. The request handler forwards the body to the
         // writer and acknowledges the request to the client.

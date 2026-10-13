@@ -8,21 +8,41 @@ import { cronify } from "./util/cronify";
 import { readResponseAsStream } from "./util/response";
 
 /**
+ * The options of the HTTP Fetch processor. The defaults of the required fields
+ * are declared in `processors.ttl`, the optional fields default to the values
+ * in `HttpFetchArguments`.
+ */
+export type HttpFetchOptions = {
+    method: string;
+    headers: string[];
+    acceptStatusCodes: string[];
+    runOnInit: boolean;
+    errorsAreFatal: boolean;
+    outputAsBuffer: boolean;
+    outputAsStream: boolean;
+    closeOnEnd?: boolean;
+    bodyCanBeEmpty?: boolean;
+    timeOutMilliseconds?: number | null;
+    auth?: AuthConfig | null;
+    cron?: string | null;
+};
+
+/**
  * An instance of this class defines how the process should execute a request
- * against a given URL. All fields are optional and contain default values.
+ * against a given URL.
  */
 class HttpFetchArguments {
     // The HTTP method to use.
-    public readonly method: string = "GET";
+    public readonly method: string;
 
     // A list of strings specifying which headers to embed in the request.
     // Must be in `key: value` format.
-    public readonly headers: string[] = [];
+    public readonly headers: string[];
 
     // A list of integer literals or integer ranges encoded as strings. For
     // example, `200` and `200-300`. Note that `a-b` is inclusive `a`, exclusive
     // `b`.
-    public readonly acceptStatusCodes: string[] = ["200-300"];
+    public readonly acceptStatusCodes: string[];
 
     // Indicate the channel must be closed when the response has been
     // transmitted.
@@ -45,23 +65,23 @@ class HttpFetchArguments {
 
     // Instantly triggers the fetch function post initialization. This only works
     // if `cron` is not set to `null` (otherwise, this is the default behavior).
-    public readonly runOnInit: boolean = false;
+    public readonly runOnInit: boolean;
 
     // If set, any error on any request will terminate the processor.
-    public readonly errorsAreFatal: boolean = true;
+    public readonly errorsAreFatal: boolean;
 
     // If set, the output will be returned as a buffer instead of a string.
-    public readonly outputAsBuffer: boolean = false;
+    public readonly outputAsBuffer: boolean;
 
     // If set, the output will be returned as a stream instead of single string/buffer.
-    public readonly outputAsStream: boolean = false;
+    public readonly outputAsStream: boolean;
 
     /**
      * Construct a new HttpFetchArgs object by overwriting specific fields.
-     * @param partial An object which may contain any fields of the class, which
-     * will overwrite the default values.
+     * @param partial The options of the processor, the optional fields which
+     * are set overwrite the default values.
      */
-    constructor(partial: Partial<HttpFetchArguments>) {
+    constructor(partial: HttpFetchOptions) {
         Object.assign(this, partial);
 
         // Sanity check.
@@ -76,13 +96,6 @@ class HttpFetchArguments {
             throw HttpUtilsError.illegalParameters(
                 "Cannot close stream when using cron.",
             );
-        }
-
-        // TODO: Find neat solution for this problem. Since JS-Runner uses an
-        // empty list as a default value, it will always be overwritten using
-        // Object.assign.
-        if (this.acceptStatusCodes.length === 0) {
-            this.acceptStatusCodes.push("200-300");
         }
 
         // Check validity of the status code range. Will throw error if invalid.
@@ -109,7 +122,7 @@ class HttpFetchArguments {
 export type HttpFetchArgs = {
     url: string | string[];
     writer: Writer;
-    options: Partial<HttpFetchArguments>;
+    options: HttpFetchOptions;
 };
 
 export class HttpFetch extends Processor<HttpFetchArgs> {
@@ -124,7 +137,7 @@ export class HttpFetch extends Processor<HttpFetchArgs> {
         ) as string[];
 
         // Parse the options as provided by the user.
-        this.arguments = new HttpFetchArguments(this.options || {});
+        this.arguments = new HttpFetchArguments(this.options);
         this.auth = this.arguments.getAuth();
 
         // Create request objects, throws error if invalid.
