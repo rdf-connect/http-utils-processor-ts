@@ -20,7 +20,7 @@ export type HttpFetchOptions = {
     errorsAreFatal: boolean;
     outputAsBuffer: boolean;
     outputAsStream: boolean;
-    closeOnEnd?: boolean;
+    closeOnEnd: boolean;
     bodyCanBeEmpty?: boolean;
     timeOutMilliseconds?: number | null;
     auth?: AuthConfig | null;
@@ -46,7 +46,7 @@ class HttpFetchArguments {
 
     // Indicate the channel must be closed when the response has been
     // transmitted.
-    public readonly closeOnEnd: boolean = true;
+    public readonly closeOnEnd: boolean;
 
     // Whether to throw an error when the body is empty or not. Note that this
     // cannot be used in conjunction with `method = "HEAD"`.

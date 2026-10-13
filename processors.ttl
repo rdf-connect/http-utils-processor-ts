@@ -44,6 +44,7 @@ rdfc:HttpFetch rdfc:jsImplementationOf rdfc:Processor;
   ], [
     sh:path rdfc:closeOnEnd;
     sh:name "closeOnEnd";
+    sh:defaultValue false;
     sh:datatype xsd:boolean;
     sh:maxCount 1;
   ], [

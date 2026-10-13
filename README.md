@@ -74,7 +74,7 @@ npm install @rdfc/http-utils-processor-ts
 - `rdfc:method` (**string**, optional): HTTP method (default: `GET`).
 - `rdfc:headers` (**string[]**, optional): Array of header strings (default: `[]`).
 - `rdfc:acceptStatusCodes` (**string[]**, optional): List of accepted status codes or ranges, e.g., `["200", "201-300"]` (default: `["200-300"]`).
-- `rdfc:closeOnEnd` (**boolean**, optional): Whether to close the writer after execution. Default depends on cron: `true` if no cron, `false` otherwise.
+- `rdfc:closeOnEnd` (**boolean**, optional): Whether to close the writer after execution. Defaults to `false`; cannot be `true` together with `rdfc:cron`.
 - `rdfc:timeOutMilliseconds` (**integer**, optional): Maximum wait time for a response before throwing a timeout error.
 - `rdfc:auth` (**rdfc:HttpFetchAuth**, optional): Authentication configuration (see below).
 - `rdfc:cron` (**string**, optional): Cron expression to schedule repeated executions.
