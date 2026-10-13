@@ -21,8 +21,17 @@ const logger = createLogger({
  * actually listening. Returns the processor, its output reader and the bound
  * address so tests can make real HTTP requests to it.
  */
+// The defaults declared in server.ttl, which the runner fills in.
+const defaultOptions: HttpServerArgs["options"] = {
+    host: "0.0.0.0",
+    method: "POST",
+    path: "/",
+    successStatusCode: 200,
+    streamThresholdBytes: 5 * 1024 * 1024,
+};
+
 async function startServer(
-    options: Partial<HttpServerArgs["options"]> = {},
+    partial: Partial<HttpServerArgs["options"]> = {},
 ): Promise<{
     proc: FullProc<HttpServer>;
     reader: Reader;
@@ -30,6 +39,7 @@ async function startServer(
 }> {
     const runner = createRunner();
     const [writer, reader] = channel(runner, "output");
+    const options = { ...defaultOptions, ...partial };
 
     const proc = <FullProc<HttpServer>>(
         new HttpServer({ port: 0, writer, options }, logger)
@@ -65,7 +75,10 @@ describe("httpServer - sanity checks", () => {
         const runner = createRunner();
         const [writer] = channel(runner, "output");
         const proc = <FullProc<HttpServer>>(
-            new HttpServer({ port: 99999, writer, options: {} }, logger)
+            new HttpServer(
+                { port: 99999, writer, options: defaultOptions },
+                logger,
+            )
         );
 
         await expect(proc.init()).rejects.toThrow(
@@ -76,11 +89,13 @@ describe("httpServer - sanity checks", () => {
     test("invalid success status code", async () => {
         const runner = createRunner();
         const [writer] = channel(runner, "output");
-        const proc = <FullProc<HttpServer>>(
-            new HttpServer(
-                { port: 0, writer, options: { successStatusCode: 999 } },
-                logger,
-            )
+        const proc = <FullProc<HttpServer>>new HttpServer(
+            {
+                port: 0,
+                writer,
+                options: { ...defaultOptions, successStatusCode: 999 },
+            },
+            logger,
         );
 
         await expect(proc.init()).rejects.toThrow(HttpUtilsError);
@@ -274,5 +289,24 @@ describe("httpServer - definition", () => {
         expect(proc.port).toEqual(8080);
 
         expect(proc.writer.constructor.name).toBe("WriterInstance");
+    });
+
+    test("falls back to its default values", async () => {
+        const helper = new ProcHelper<HttpServer>();
+        await helper.importFile(resolve("./processors.ttl"));
+        await helper.importInline(resolve("./pipeline.ttl"), pipeline);
+
+        helper.getConfig("HttpServer");
+        const proc = await helper.getProcessor(
+            "http://example.com/ns#processor",
+        );
+
+        expect(proc.options).toEqual({
+            host: "0.0.0.0",
+            method: "POST",
+            path: "/",
+            successStatusCode: 200,
+            streamThresholdBytes: 5242880,
+        });
     });
 });
