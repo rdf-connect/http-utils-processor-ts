@@ -5,6 +5,7 @@ import {
     beforeEach,
     beforeAll,
     afterAll,
+    vi,
 } from "vitest";
 import { HttpUtilsError } from "../src/error";
 import { Fetch } from "./fetch";
@@ -44,7 +45,6 @@ const defaultOptions: HttpFetchArgs["options"] = {
     errorsAreFatal: true,
     outputAsBuffer: false,
     outputAsStream: false,
-    closeOnEnd: false,
 };
 
 async function fromOptions(
@@ -278,7 +278,6 @@ describe("httpFetch - runtime", () => {
                 options: {
                     ...defaultOptions,
                     outputAsStream: true,
-                    closeOnEnd: true,
                 },
             },
             logger,
@@ -303,5 +302,62 @@ describe("httpFetch - runtime", () => {
         expect(chunks.length).toBeGreaterThan(0);
         const outputString = Buffer.concat(chunks).toString();
         expect(outputString).toEqual("Hello, World!");
+    });
+
+    test("closes the writer after the fetch without a cron expression", async () => {
+        const runner = createRunner();
+        const [outputWriter, outputReader] = channel(runner, "output");
+        const func = <FullProc<HttpFetch>>new HttpFetch(
+            {
+                url: "https://example.com",
+                writer: outputWriter,
+                options: defaultOptions,
+            },
+            logger,
+        );
+
+        mockFetch.set({ status: 200 });
+        await func.init();
+
+        // Only ends because the writer is closed
+        const received = (async () => {
+            const out: string[] = [];
+            for await (const data of outputReader.strings()) out.push(data);
+            return out;
+        })();
+
+        await func.produce();
+        expect(await received).toEqual(["Hello, World!"]);
+    });
+
+    test("keeps the writer open with a cron expression", async () => {
+        const runner = createRunner();
+        const [outputWriter, outputReader] = channel(runner, "output");
+        const close = vi.spyOn(outputWriter, "close");
+        const func = <FullProc<HttpFetch>>new HttpFetch(
+            {
+                url: "https://example.com",
+                writer: outputWriter,
+                options: {
+                    ...defaultOptions,
+                    // Once on init, then yearly
+                    cron: "0 0 1 1 *",
+                    runOnInit: true,
+                },
+            },
+            logger,
+        );
+
+        mockFetch.set({ status: 200 });
+        await func.init();
+
+        const first = (async () => {
+            for await (const data of outputReader.strings()) return data;
+        })();
+
+        await func.produce();
+        expect(await first).toEqual("Hello, World!");
+        await new Promise((res) => setTimeout(res, 50));
+        expect(close).not.toHaveBeenCalled();
     });
 });

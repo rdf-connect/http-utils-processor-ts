@@ -20,7 +20,6 @@ export type HttpFetchOptions = {
     errorsAreFatal: boolean;
     outputAsBuffer: boolean;
     outputAsStream: boolean;
-    closeOnEnd: boolean;
     bodyCanBeEmpty?: boolean;
     timeOutMilliseconds?: number | null;
     auth?: AuthConfig | null;
@@ -44,10 +43,6 @@ class HttpFetchArguments {
     // `b`.
     public readonly acceptStatusCodes: string[];
 
-    // Indicate the channel must be closed when the response has been
-    // transmitted.
-    public readonly closeOnEnd: boolean;
-
     // Whether to throw an error when the body is empty or not. Note that this
     // cannot be used in conjunction with `method = "HEAD"`.
     public readonly bodyCanBeEmpty: boolean = false;
@@ -60,7 +55,8 @@ class HttpFetchArguments {
     public readonly auth: AuthConfig | null = null;
 
     // Cron expression which indicates how often the function should be run. If
-    // `null`, the function returns immediately after one call.
+    // `null`, the function returns immediately after one call, and closes the
+    // writer: without a schedule, nothing is written after that.
     public readonly cron: string | null | undefined = null;
 
     // Instantly triggers the fetch function post initialization. This only works
@@ -88,13 +84,6 @@ class HttpFetchArguments {
         if (!partial.bodyCanBeEmpty && partial.method == "HEAD") {
             throw HttpUtilsError.illegalParameters(
                 "Cannot use HEAD method with bodyCanBeEmpty set to false",
-            );
-        }
-
-        // Sanity check.
-        if (partial.closeOnEnd && partial.cron) {
-            throw HttpUtilsError.illegalParameters(
-                "Cannot close stream when using cron.",
             );
         }
 
@@ -177,7 +166,8 @@ export class HttpFetch extends Processor<HttpFetchArgs> {
 
             await Promise.all(promises);
 
-            if (this.arguments.closeOnEnd) {
+            // Without a cron expression, this was the only run.
+            if (!this.arguments.cron) {
                 await this.writer.close();
             }
         };
@@ -243,16 +233,10 @@ export class HttpFetch extends Processor<HttpFetchArgs> {
         }
 
         // Special case: if the body is empty. We either throw an error or exit
-        // early. Make sure to close the writer if required.
+        // early. The writer is closed once all requests are done.
         if (!res.body) {
             if (!this.arguments.bodyCanBeEmpty) {
                 throw HttpUtilsError.noBodyInResponse();
-            }
-
-            // We can assume that closeOnEnd is false when a cron expression is
-            // set due to earlier sanity checks.
-            if (!this.arguments.cron && this.arguments.closeOnEnd) {
-                await this.writer.close();
             }
 
             return;

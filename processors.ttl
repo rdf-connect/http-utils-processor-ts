@@ -42,12 +42,6 @@ rdfc:HttpFetch rdfc:jsImplementationOf rdfc:Processor;
     sh:defaultValue "200-300";
     sh:datatype xsd:string;
   ], [
-    sh:path rdfc:closeOnEnd;
-    sh:name "closeOnEnd";
-    sh:defaultValue false;
-    sh:datatype xsd:boolean;
-    sh:maxCount 1;
-  ], [
     sh:path rdfc:timeOutMilliseconds;
     sh:name "timeOutMilliseconds";
     sh:datatype xsd:integer;
