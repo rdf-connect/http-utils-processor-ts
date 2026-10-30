@@ -43,7 +43,6 @@ npm install @rdfc/http-utils-processor-ts
         rdfc:method "GET";
         rdfc:headers "Authorization: Bearer TOKEN";
         rdfc:acceptStatusCodes "200-300";
-        rdfc:closeOnEnd true;
         rdfc:timeOutMilliseconds 5000;
         rdfc:cron "*/5 * * * *";
         rdfc:runOnInit true;
@@ -63,7 +62,7 @@ npm install @rdfc/http-utils-processor-ts
 
 ### Parameters of `rdfc:HttpFetch`:
 
-- `rdfc:url` (**string**, required): URL(s) to fetch. Can be a single string or an array of strings.
+- `rdfc:url` (**string** or IRI, required): URL(s) to fetch. Can be given more than once to fetch several URLs.
 - `rdfc:writer` (**rdfc:Writer**, required): Output channel to write the fetched response.
 - `rdfc:options` (**rdfc:HttpFetchOptions**, optional): Optional settings including method, headers, timeout, authentication, cron, and more.
 
@@ -74,13 +73,13 @@ npm install @rdfc/http-utils-processor-ts
 - `rdfc:method` (**string**, optional): HTTP method (default: `GET`).
 - `rdfc:headers` (**string[]**, optional): Array of header strings (default: `[]`).
 - `rdfc:acceptStatusCodes` (**string[]**, optional): List of accepted status codes or ranges, e.g., `["200", "201-300"]` (default: `["200-300"]`).
-- `rdfc:closeOnEnd` (**boolean**, optional): Whether to close the writer after execution. Default depends on cron: `true` if no cron, `false` otherwise.
 - `rdfc:timeOutMilliseconds` (**integer**, optional): Maximum wait time for a response before throwing a timeout error.
 - `rdfc:auth` (**rdfc:HttpFetchAuth**, optional): Authentication configuration (see below).
-- `rdfc:cron` (**string**, optional): Cron expression to schedule repeated executions.
+- `rdfc:cron` (**string**, optional): Cron expression to schedule repeated executions. Without it, the URLs are fetched once and the writer is closed, so the pipeline can end; with it, the writer stays open for the next run.
 - `rdfc:runOnInit` (**boolean**, optional): Run immediately upon initialization if cron is set (default: `false`).
 - `rdfc:errorsAreFatal` (**boolean**, optional): Exit on fetch errors (default: `true`).
 - `rdfc:outputAsBuffer` (**boolean**, optional): Whether the response is returned as a buffer (default: `false`).
+- `rdfc:outputAsStream` (**boolean**, optional): Whether the response is returned as a stream instead of a single string or buffer (default: `false`).
 
 ---
 

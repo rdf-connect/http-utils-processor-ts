@@ -8,25 +8,40 @@ import { cronify } from "./util/cronify";
 import { readResponseAsStream } from "./util/response";
 
 /**
+ * The options of the HTTP Fetch processor. The defaults of the required fields
+ * are declared in `processors.ttl`, the optional fields default to the values
+ * in `HttpFetchArguments`.
+ */
+export type HttpFetchOptions = {
+    method: string;
+    headers: string[];
+    acceptStatusCodes: string[];
+    runOnInit: boolean;
+    errorsAreFatal: boolean;
+    outputAsBuffer: boolean;
+    outputAsStream: boolean;
+    bodyCanBeEmpty?: boolean;
+    timeOutMilliseconds?: number | null;
+    auth?: AuthConfig | null;
+    cron?: string | null;
+};
+
+/**
  * An instance of this class defines how the process should execute a request
- * against a given URL. All fields are optional and contain default values.
+ * against a given URL.
  */
 class HttpFetchArguments {
     // The HTTP method to use.
-    public readonly method: string = "GET";
+    public readonly method: string;
 
     // A list of strings specifying which headers to embed in the request.
     // Must be in `key: value` format.
-    public readonly headers: string[] = [];
+    public readonly headers: string[];
 
     // A list of integer literals or integer ranges encoded as strings. For
     // example, `200` and `200-300`. Note that `a-b` is inclusive `a`, exclusive
     // `b`.
-    public readonly acceptStatusCodes: string[] = ["200-300"];
-
-    // Indicate the channel must be closed when the response has been
-    // transmitted.
-    public readonly closeOnEnd: boolean = true;
+    public readonly acceptStatusCodes: string[];
 
     // Whether to throw an error when the body is empty or not. Note that this
     // cannot be used in conjunction with `method = "HEAD"`.
@@ -40,28 +55,29 @@ class HttpFetchArguments {
     public readonly auth: AuthConfig | null = null;
 
     // Cron expression which indicates how often the function should be run. If
-    // `null`, the function returns immediately after one call.
+    // `null`, the function returns immediately after one call, and closes the
+    // writer: without a schedule, nothing is written after that.
     public readonly cron: string | null | undefined = null;
 
     // Instantly triggers the fetch function post initialization. This only works
     // if `cron` is not set to `null` (otherwise, this is the default behavior).
-    public readonly runOnInit: boolean = false;
+    public readonly runOnInit: boolean;
 
     // If set, any error on any request will terminate the processor.
-    public readonly errorsAreFatal: boolean = true;
+    public readonly errorsAreFatal: boolean;
 
     // If set, the output will be returned as a buffer instead of a string.
-    public readonly outputAsBuffer: boolean = false;
+    public readonly outputAsBuffer: boolean;
 
     // If set, the output will be returned as a stream instead of single string/buffer.
-    public readonly outputAsStream: boolean = false;
+    public readonly outputAsStream: boolean;
 
     /**
      * Construct a new HttpFetchArgs object by overwriting specific fields.
-     * @param partial An object which may contain any fields of the class, which
-     * will overwrite the default values.
+     * @param partial The options of the processor, the optional fields which
+     * are set overwrite the default values.
      */
-    constructor(partial: Partial<HttpFetchArguments>) {
+    constructor(partial: HttpFetchOptions) {
         Object.assign(this, partial);
 
         // Sanity check.
@@ -69,20 +85,6 @@ class HttpFetchArguments {
             throw HttpUtilsError.illegalParameters(
                 "Cannot use HEAD method with bodyCanBeEmpty set to false",
             );
-        }
-
-        // Sanity check.
-        if (partial.closeOnEnd && partial.cron) {
-            throw HttpUtilsError.illegalParameters(
-                "Cannot close stream when using cron.",
-            );
-        }
-
-        // TODO: Find neat solution for this problem. Since JS-Runner uses an
-        // empty list as a default value, it will always be overwritten using
-        // Object.assign.
-        if (this.acceptStatusCodes.length === 0) {
-            this.acceptStatusCodes.push("200-300");
         }
 
         // Check validity of the status code range. Will throw error if invalid.
@@ -109,7 +111,7 @@ class HttpFetchArguments {
 export type HttpFetchArgs = {
     url: string | string[];
     writer: Writer;
-    options: Partial<HttpFetchArguments>;
+    options: HttpFetchOptions;
 };
 
 export class HttpFetch extends Processor<HttpFetchArgs> {
@@ -124,7 +126,7 @@ export class HttpFetch extends Processor<HttpFetchArgs> {
         ) as string[];
 
         // Parse the options as provided by the user.
-        this.arguments = new HttpFetchArguments(this.options || {});
+        this.arguments = new HttpFetchArguments(this.options);
         this.auth = this.arguments.getAuth();
 
         // Create request objects, throws error if invalid.
@@ -164,7 +166,8 @@ export class HttpFetch extends Processor<HttpFetchArgs> {
 
             await Promise.all(promises);
 
-            if (this.arguments.closeOnEnd) {
+            // Without a cron expression, this was the only run.
+            if (!this.arguments.cron) {
                 await this.writer.close();
             }
         };
@@ -230,16 +233,10 @@ export class HttpFetch extends Processor<HttpFetchArgs> {
         }
 
         // Special case: if the body is empty. We either throw an error or exit
-        // early. Make sure to close the writer if required.
+        // early. The writer is closed once all requests are done.
         if (!res.body) {
             if (!this.arguments.bodyCanBeEmpty) {
                 throw HttpUtilsError.noBodyInResponse();
-            }
-
-            // We can assume that closeOnEnd is false when a cron expression is
-            // set due to earlier sanity checks.
-            if (!this.arguments.cron && this.arguments.closeOnEnd) {
-                await this.writer.close();
             }
 
             return;
