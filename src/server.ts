@@ -15,42 +15,38 @@ type HttpServerArguments = {
     streamThresholdBytes: number;
 };
 
-function intoServerArguments(args: HttpServerArguments): HttpServerArguments {
-    const out: HttpServerArguments = { ...args };
-
-    if (!out.method) {
+function validateServerArguments(args: HttpServerArguments): void {
+    if (!args.method) {
         throw HttpUtilsError.illegalParameters("Method cannot be empty.");
     }
 
     // Sanity check: the path must start with a slash.
-    if (!out.path.startsWith("/")) {
+    if (!args.path.startsWith("/")) {
         throw HttpUtilsError.illegalParameters(
-            `Path must start with '/', got '${out.path}'.`,
+            `Path must start with '/', got '${args.path}'.`,
         );
     }
 
     // Sanity check: the status code must be a valid HTTP status code.
     if (
-        !Number.isInteger(out.successStatusCode) ||
-        out.successStatusCode < 100 ||
-        out.successStatusCode > 599
+        !Number.isInteger(args.successStatusCode) ||
+        args.successStatusCode < 100 ||
+        args.successStatusCode > 599
     ) {
         throw HttpUtilsError.illegalParameters(
-            `Invalid status code '${out.successStatusCode}'. Must be an integer between 100 and 599.`,
+            `Invalid status code '${args.successStatusCode}'. Must be an integer between 100 and 599.`,
         );
     }
 
     // Sanity check: the streaming threshold must be a non-negative integer.
     if (
-        !Number.isInteger(out.streamThresholdBytes) ||
-        out.streamThresholdBytes < 0
+        !Number.isInteger(args.streamThresholdBytes) ||
+        args.streamThresholdBytes < 0
     ) {
         throw HttpUtilsError.illegalParameters(
-            `Invalid streamThresholdBytes '${out.streamThresholdBytes}'. Must be a non-negative integer.`,
+            `Invalid streamThresholdBytes '${args.streamThresholdBytes}'. Must be a non-negative integer.`,
         );
     }
-
-    return out;
 }
 
 /**
@@ -89,7 +85,6 @@ export type HttpServerArgs = {
 };
 
 export class HttpServer extends Processor<HttpServerArgs> {
-    protected arguments: HttpServerArguments;
     protected closing = false;
     // Exposed so tests can read the actually bound address when `port` is `0`.
     public server: http.Server;
@@ -108,7 +103,7 @@ export class HttpServer extends Processor<HttpServerArgs> {
         }
 
         // Parse the options as provided by the user.
-        this.arguments = intoServerArguments(this.options);
+        validateServerArguments(this.options);
 
         // Create the server. The request handler forwards the body to the
         // writer and acknowledges the request to the client.
@@ -143,11 +138,11 @@ export class HttpServer extends Processor<HttpServerArgs> {
                 this.writer.close().finally(resolve);
             });
 
-            this.server.listen(this.port, this.arguments.host, () => {
+            this.server.listen(this.port, this.options.host, () => {
                 const address = this.server.address() as AddressInfo;
                 this.logger.info(
-                    `HTTP server listening on ${this.arguments.host}:${address.port} ` +
-                        `(accepting ${this.arguments.method} ${this.arguments.path})`,
+                    `HTTP server listening on ${this.options.host}:${address.port} ` +
+                        `(accepting ${this.options.method} ${this.options.path})`,
                 );
             });
         });
@@ -165,10 +160,10 @@ export class HttpServer extends Processor<HttpServerArgs> {
         // Only accept the configured method.
         if (
             (req.method ?? "").toUpperCase() !==
-            this.arguments.method.toUpperCase()
+            this.options.method.toUpperCase()
         ) {
             this.logger.debug(`Rejected request with method '${req.method}'.`);
-            res.writeHead(405, { Allow: this.arguments.method });
+            res.writeHead(405, { Allow: this.options.method });
             res.end("Method Not Allowed");
             return;
         }
@@ -176,7 +171,7 @@ export class HttpServer extends Processor<HttpServerArgs> {
         // Only accept the configured path. `req.url` may contain a query
         // string, so we compare the pathname only.
         const pathname = new URL(req.url ?? "/", "http://localhost").pathname;
-        if (pathname !== this.arguments.path) {
+        if (pathname !== this.options.path) {
             this.logger.debug(`Rejected request to path '${pathname}'.`);
             res.writeHead(404);
             res.end("Not Found");
@@ -210,7 +205,7 @@ export class HttpServer extends Processor<HttpServerArgs> {
     ): Promise<void> {
         try {
             await this.forwardBody(req);
-            res.writeHead(this.arguments.successStatusCode);
+            res.writeHead(this.options.successStatusCode);
             res.end();
         } catch (err) {
             this.logger.error(
@@ -235,7 +230,7 @@ export class HttpServer extends Processor<HttpServerArgs> {
         this: HttpServerArgs & this,
         req: http.IncomingMessage,
     ): Promise<void> {
-        const threshold = this.arguments.streamThresholdBytes;
+        const threshold = this.options.streamThresholdBytes;
 
         // Fast path: a declared Content-Length lets us decide up front,
         // without reading anything into memory first.

@@ -6,7 +6,6 @@ import { parseHeaders } from "./util/headers";
 import { Auth, AuthConfig } from "./auth";
 import { cronify } from "./util/cronify";
 import { readResponseAsStream } from "./util/response";
-
 /**
  * The options of the HTTP Fetch processor. The defaults of the required fields
  * are declared in `processors.ttl`, the optional fields default to the values

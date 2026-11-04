@@ -106,4 +106,3 @@ rdfc:HttpFetch rdfc:jsImplementationOf rdfc:Processor;
     sh:class rdfc:HttpFetchOptions;
     sh:maxCount 1;
   ].
-
