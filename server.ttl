@@ -15,26 +15,31 @@ rdfc:HttpServer rdfc:jsImplementationOf rdfc:Processor;
   sh:property [
     sh:path rdfc:host;
     sh:name "host";
+    sh:defaultValue "0.0.0.0";
     sh:datatype xsd:string;
     sh:maxCount 1;
   ], [
     sh:path rdfc:method;
     sh:name "method";
+    sh:defaultValue "POST";
     sh:datatype xsd:string;
     sh:maxCount 1;
   ], [
     sh:path rdfc:path;
     sh:name "path";
+    sh:defaultValue "/";
     sh:datatype xsd:string;
     sh:maxCount 1;
   ], [
     sh:path rdfc:successStatusCode;
     sh:name "successStatusCode";
+    sh:defaultValue 200;
     sh:datatype xsd:integer;
     sh:maxCount 1;
   ], [
     sh:path rdfc:streamThresholdBytes;
     sh:name "streamThresholdBytes";
+    sh:defaultValue 5242880;
     sh:datatype xsd:integer;
     sh:maxCount 1;
   ].
@@ -56,6 +61,7 @@ rdfc:HttpServer rdfc:jsImplementationOf rdfc:Processor;
   ], [
     sh:path rdfc:options;
     sh:name "options";
+    sh:defaultValue [ ];
     sh:class rdfc:HttpServerOptions;
     sh:maxCount 1;
   ].

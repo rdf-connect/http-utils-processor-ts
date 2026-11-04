@@ -5,6 +5,7 @@ import {
     beforeEach,
     beforeAll,
     afterAll,
+    vi,
 } from "vitest";
 import { HttpUtilsError } from "../src/error";
 import { Fetch } from "./fetch";
@@ -35,9 +36,21 @@ const logger = createLogger({
     }),
 });
 
+// The defaults declared in processors.ttl, which the runner fills in.
+const defaultOptions: HttpFetchArgs["options"] = {
+    method: "GET",
+    headers: [],
+    acceptStatusCodes: ["200-300"],
+    runOnInit: false,
+    errorsAreFatal: true,
+    outputAsBuffer: false,
+    outputAsStream: false,
+};
+
 async function fromOptions(
-    options: Partial<HttpFetchArgs["options"]>,
+    partial: Partial<HttpFetchArgs["options"]>,
 ): Promise<FullProc<HttpFetch>> {
+    const options = { ...defaultOptions, ...partial };
     const runner = createRunner();
     const [outputWriter, outputReader] = channel(runner, "output");
     const o = <FullProc<HttpFetch>>new HttpFetch(
@@ -263,6 +276,7 @@ describe("httpFetch - runtime", () => {
                 url: "https://example.com",
                 writer: outputWriter,
                 options: {
+                    ...defaultOptions,
                     outputAsStream: true,
                 },
             },
@@ -288,5 +302,62 @@ describe("httpFetch - runtime", () => {
         expect(chunks.length).toBeGreaterThan(0);
         const outputString = Buffer.concat(chunks).toString();
         expect(outputString).toEqual("Hello, World!");
+    });
+
+    test("closes the writer after the fetch without a cron expression", async () => {
+        const runner = createRunner();
+        const [outputWriter, outputReader] = channel(runner, "output");
+        const func = <FullProc<HttpFetch>>new HttpFetch(
+            {
+                url: "https://example.com",
+                writer: outputWriter,
+                options: defaultOptions,
+            },
+            logger,
+        );
+
+        mockFetch.set({ status: 200 });
+        await func.init();
+
+        // Only ends because the writer is closed
+        const received = (async () => {
+            const out: string[] = [];
+            for await (const data of outputReader.strings()) out.push(data);
+            return out;
+        })();
+
+        await func.produce();
+        expect(await received).toEqual(["Hello, World!"]);
+    });
+
+    test("keeps the writer open with a cron expression", async () => {
+        const runner = createRunner();
+        const [outputWriter, outputReader] = channel(runner, "output");
+        const close = vi.spyOn(outputWriter, "close");
+        const func = <FullProc<HttpFetch>>new HttpFetch(
+            {
+                url: "https://example.com",
+                writer: outputWriter,
+                options: {
+                    ...defaultOptions,
+                    // Once on init, then yearly
+                    cron: "0 0 1 1 *",
+                    runOnInit: true,
+                },
+            },
+            logger,
+        );
+
+        mockFetch.set({ status: 200 });
+        await func.init();
+
+        const first = (async () => {
+            for await (const data of outputReader.strings()) return data;
+        })();
+
+        await func.produce();
+        expect(await first).toEqual("Hello, World!");
+        await new Promise((res) => setTimeout(res, 50));
+        expect(close).not.toHaveBeenCalled();
     });
 });
