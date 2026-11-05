@@ -14,31 +14,36 @@ rdfc:HttpServer rdfc:jsImplementationOf rdfc:Processor;
   sh:targetClass rdfc:HttpServerOptions;
   sh:property [
     sh:path rdfc:host;
-    sh:name "host";
+    sh:codeIdentifier "host";
+    sh:name "Host";
     sh:defaultValue "0.0.0.0";
     sh:datatype xsd:string;
     sh:maxCount 1;
   ], [
     sh:path rdfc:method;
-    sh:name "method";
+    sh:codeIdentifier "method";
+    sh:name "HTTP method";
     sh:defaultValue "POST";
     sh:datatype xsd:string;
     sh:maxCount 1;
   ], [
     sh:path rdfc:path;
-    sh:name "path";
+    sh:codeIdentifier "path";
+    sh:name "Path";
     sh:defaultValue "/";
     sh:datatype xsd:string;
     sh:maxCount 1;
   ], [
     sh:path rdfc:successStatusCode;
-    sh:name "successStatusCode";
+    sh:codeIdentifier "successStatusCode";
+    sh:name "Success status code";
     sh:defaultValue 200;
     sh:datatype xsd:integer;
     sh:maxCount 1;
   ], [
     sh:path rdfc:streamThresholdBytes;
-    sh:name "streamThresholdBytes";
+    sh:codeIdentifier "streamThresholdBytes";
+    sh:name "Stream threshold";
     sh:defaultValue 5242880;
     sh:datatype xsd:integer;
     sh:maxCount 1;
@@ -48,19 +53,22 @@ rdfc:HttpServer rdfc:jsImplementationOf rdfc:Processor;
   sh:targetClass rdfc:HttpServer;
   sh:property [
     sh:path rdfc:port;
-    sh:name "port";
+    sh:codeIdentifier "port";
+    sh:name "Port";
     sh:datatype xsd:integer;
     sh:minCount 1;
     sh:maxCount 1;
   ], [
     sh:path rdfc:writer;
-    sh:name "writer";
+    sh:codeIdentifier "writer";
+    sh:name "Output channel";
     sh:class rdfc:Writer;
     sh:minCount 1;
     sh:maxCount 1;
   ], [
     sh:path rdfc:options;
-    sh:name "options";
+    sh:codeIdentifier "options";
+    sh:name "Options";
     sh:defaultValue [ ];
     sh:class rdfc:HttpServerOptions;
     sh:maxCount 1;
