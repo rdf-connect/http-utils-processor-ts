@@ -11,8 +11,7 @@ rdfcp:HttpServer rdfc:jsImplementationOf rdfc:Processor;
   rdfc:class "HttpServer";
   rdfc:entrypoint <./>.
 
-[ ] a sh:NodeShape;
-  sh:targetClass rdfcp:HttpServerOptions;
+rdfcp:HttpServerOptionsShape a sh:NodeShape;
   sh:property [
     sh:path rdfcp:host;
     sh:codeIdentifier "host";
@@ -79,7 +78,7 @@ rdfcp:HttpServer rdfc:jsImplementationOf rdfc:Processor;
     sh:name "Options";
     sh:description "Additional server settings, such as the bind address, method, path and status code.";
     sh:defaultValue [ ];
-    sh:class rdfcp:HttpServerOptions;
+    sh:node rdfcp:HttpServerOptionsShape;
     sh:maxCount 1;
   ].
 

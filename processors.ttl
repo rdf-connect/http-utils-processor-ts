@@ -15,8 +15,7 @@ rdfcp:HttpFetch rdfc:jsImplementationOf rdfc:Processor;
   rdfc:class "HttpFetch";
   rdfc:entrypoint <./>.
 
-[ ] a sh:NodeShape;
-  sh:targetClass rdfcp:HttpFetchAuth;
+rdfcp:HttpFetchAuthShape a sh:NodeShape;
   sh:property [
     sh:path rdfcp:type;
     sh:codeIdentifier "type";
@@ -27,8 +26,7 @@ rdfcp:HttpFetch rdfc:jsImplementationOf rdfc:Processor;
     sh:maxCount 1;
   ].
 
-[ ] a sh:NodeShape;
-  sh:targetClass rdfcp:HttpFetchOptions;
+rdfcp:HttpFetchOptionsShape a sh:NodeShape;
   sh:property [
     sh:path rdfcp:method;
     sh:codeIdentifier "method";
@@ -59,7 +57,7 @@ rdfcp:HttpFetch rdfc:jsImplementationOf rdfc:Processor;
     sh:maxCount 1;
   ], [
     sh:path rdfcp:HttpFetchAuth;
-    sh:class rdfcp:HttpFetchAuth;
+    sh:node rdfcp:HttpFetchAuthShape;
     sh:codeIdentifier "auth";
     sh:name "Authentication";
     sh:description "Authentication settings for the requests.";
@@ -132,6 +130,6 @@ rdfcp:HttpFetch rdfc:jsImplementationOf rdfc:Processor;
     sh:name "Options";
     sh:description "Additional request settings, such as the method, headers, authentication and schedule.";
     sh:defaultValue [ ];
-    sh:class rdfcp:HttpFetchOptions;
+    sh:node rdfcp:HttpFetchOptionsShape;
     sh:maxCount 1;
   ].
