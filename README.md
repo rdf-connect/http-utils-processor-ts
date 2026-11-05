@@ -65,17 +65,17 @@ npm install @rdfc/http-utils-processor-ts
 
 - `rdfcp:url` (**string** or IRI, required): URL(s) to fetch. Can be given more than once to fetch several URLs.
 - `rdfcp:output` (**rdfc:Writer**, required): Output channel to write the fetched response.
-- `rdfcp:options` (**rdfcp:HttpFetchOptions**, optional): Optional settings including method, headers, timeout, authentication, cron, and more.
+- `rdfcp:options` (**rdfcp:HttpFetchOptionsShape**, optional): Optional settings including method, headers, timeout, authentication, cron, and more.
 
 ---
 
-### Parameters of `rdfcp:HttpFetchOptions`:
+### Parameters of `rdfcp:HttpFetchOptionsShape`:
 
 - `rdfcp:method` (**string**, optional): HTTP method (default: `GET`).
 - `rdfcp:headers` (**string[]**, optional): Array of header strings (default: `[]`).
 - `rdfcp:acceptStatusCodes` (**string[]**, optional): List of accepted status codes or ranges, e.g., `["200", "201-300"]` (default: `["200-300"]`).
 - `rdfcp:timeOutMilliseconds` (**integer**, optional): Maximum wait time for a response before throwing a timeout error.
-- `rdfcp:auth` (**rdfcp:HttpFetchAuth**, optional): Authentication configuration (see below).
+- `rdfcp:auth` (**rdfcp:HttpFetchAuthShape**, optional): Authentication configuration (see below).
 - `rdfcp:cron` (**string**, optional): Cron expression to schedule repeated executions. Without it, the URLs are fetched once and the writer is closed, so the pipeline can end; with it, the writer stays open for the next run.
 - `rdfcp:runOnInit` (**boolean**, optional): Run immediately upon initialization if cron is set (default: `false`).
 - `rdfcp:errorsAreFatal` (**boolean**, optional): Exit on fetch errors (default: `true`).
@@ -84,7 +84,7 @@ npm install @rdfc/http-utils-processor-ts
 
 ---
 
-### Authentication (`rdfcp:HttpFetchAuth`)
+### Authentication (`rdfcp:HttpFetchAuthShape`)
 
 Supported types:
 
@@ -145,9 +145,9 @@ single `owl:imports` makes both processors available.
 
 - `rdfcp:port` (**integer**, required): Port to listen on. Use `0` to let the OS assign a free port.
 - `rdfcp:output` (**rdfc:Writer**, required): Output channel that receives each request body. Requests are handled one at a time.
-- `rdfcp:options` (**rdfcp:HttpServerOptions**, optional): Additional settings (see below).
+- `rdfcp:options` (**rdfcp:HttpServerOptionsShape**, optional): Additional settings (see below).
 
-### Parameters of `rdfcp:HttpServerOptions`:
+### Parameters of `rdfcp:HttpServerOptionsShape`:
 
 - `rdfcp:host` (**string**, optional): Bind address (default: `0.0.0.0`). The default makes the server reachable from outside a Docker container; use `127.0.0.1` to only accept local connections.
 - `rdfcp:method` (**string**, optional): Accepted HTTP method (default: `POST`). Requests using any other method receive `405 Method Not Allowed`.
