@@ -27,6 +27,7 @@ npm install @rdfc/http-utils-processor-ts
 
 ```turtle
 @prefix rdfc: <https://w3id.org/rdf-connect#>.
+@prefix rdfcp: <https://w3id.org/rdf-connect/processors#>.
 @prefix owl: <http://www.w3.org/2002/07/owl#>.
 
 ### Import the processor definitions
@@ -36,22 +37,22 @@ npm install @rdfc/http-utils-processor-ts
 <out> a rdfc:Writer.
 
 ### Define and configure the processor
-<fetcher> a rdfc:HttpFetch;
-    rdfc:url "https://example.org/api/data";
-    rdfc:writer <out>;
-    rdfc:options [
-        rdfc:method "GET";
-        rdfc:headers "Authorization: Bearer TOKEN";
-        rdfc:acceptStatusCodes "200-300";
-        rdfc:timeOutMilliseconds 5000;
-        rdfc:cron "*/5 * * * *";
-        rdfc:runOnInit true;
-        rdfc:errorsAreFatal true;
-        rdfc:outputAsBuffer false;
-        rdfc:auth [
-            rdfc:type "basic";
-            rdfc:username "user";
-            rdfc:password "pass"
+<fetcher> a rdfcp:HttpFetch;
+    rdfcp:url "https://example.org/api/data";
+    rdfcp:writer <out>;
+    rdfcp:options [
+        rdfcp:method "GET";
+        rdfcp:headers "Authorization: Bearer TOKEN";
+        rdfcp:acceptStatusCodes "200-300";
+        rdfcp:timeOutMilliseconds 5000;
+        rdfcp:cron "*/5 * * * *";
+        rdfcp:runOnInit true;
+        rdfcp:errorsAreFatal true;
+        rdfcp:outputAsBuffer false;
+        rdfcp:auth [
+            rdfcp:type "basic";
+            rdfcp:username "user";
+            rdfcp:password "pass"
         ]
     ].
 ```
@@ -60,54 +61,54 @@ npm install @rdfc/http-utils-processor-ts
 
 ## Configuration
 
-### Parameters of `rdfc:HttpFetch`:
+### Parameters of `rdfcp:HttpFetch`:
 
-- `rdfc:url` (**string** or IRI, required): URL(s) to fetch. Can be given more than once to fetch several URLs.
-- `rdfc:writer` (**rdfc:Writer**, required): Output channel to write the fetched response.
-- `rdfc:options` (**rdfc:HttpFetchOptions**, optional): Optional settings including method, headers, timeout, authentication, cron, and more.
-
----
-
-### Parameters of `rdfc:HttpFetchOptions`:
-
-- `rdfc:method` (**string**, optional): HTTP method (default: `GET`).
-- `rdfc:headers` (**string[]**, optional): Array of header strings (default: `[]`).
-- `rdfc:acceptStatusCodes` (**string[]**, optional): List of accepted status codes or ranges, e.g., `["200", "201-300"]` (default: `["200-300"]`).
-- `rdfc:timeOutMilliseconds` (**integer**, optional): Maximum wait time for a response before throwing a timeout error.
-- `rdfc:auth` (**rdfc:HttpFetchAuth**, optional): Authentication configuration (see below).
-- `rdfc:cron` (**string**, optional): Cron expression to schedule repeated executions. Without it, the URLs are fetched once and the writer is closed, so the pipeline can end; with it, the writer stays open for the next run.
-- `rdfc:runOnInit` (**boolean**, optional): Run immediately upon initialization if cron is set (default: `false`).
-- `rdfc:errorsAreFatal` (**boolean**, optional): Exit on fetch errors (default: `true`).
-- `rdfc:outputAsBuffer` (**boolean**, optional): Whether the response is returned as a buffer (default: `false`).
-- `rdfc:outputAsStream` (**boolean**, optional): Whether the response is returned as a stream instead of a single string or buffer (default: `false`).
+- `rdfcp:url` (**string** or IRI, required): URL(s) to fetch. Can be given more than once to fetch several URLs.
+- `rdfcp:writer` (**rdfc:Writer**, required): Output channel to write the fetched response.
+- `rdfcp:options` (**rdfcp:HttpFetchOptions**, optional): Optional settings including method, headers, timeout, authentication, cron, and more.
 
 ---
 
-### Authentication (`rdfc:HttpFetchAuth`)
+### Parameters of `rdfcp:HttpFetchOptions`:
+
+- `rdfcp:method` (**string**, optional): HTTP method (default: `GET`).
+- `rdfcp:headers` (**string[]**, optional): Array of header strings (default: `[]`).
+- `rdfcp:acceptStatusCodes` (**string[]**, optional): List of accepted status codes or ranges, e.g., `["200", "201-300"]` (default: `["200-300"]`).
+- `rdfcp:timeOutMilliseconds` (**integer**, optional): Maximum wait time for a response before throwing a timeout error.
+- `rdfcp:auth` (**rdfcp:HttpFetchAuth**, optional): Authentication configuration (see below).
+- `rdfcp:cron` (**string**, optional): Cron expression to schedule repeated executions. Without it, the URLs are fetched once and the writer is closed, so the pipeline can end; with it, the writer stays open for the next run.
+- `rdfcp:runOnInit` (**boolean**, optional): Run immediately upon initialization if cron is set (default: `false`).
+- `rdfcp:errorsAreFatal` (**boolean**, optional): Exit on fetch errors (default: `true`).
+- `rdfcp:outputAsBuffer` (**boolean**, optional): Whether the response is returned as a buffer (default: `false`).
+- `rdfcp:outputAsStream` (**boolean**, optional): Whether the response is returned as a stream instead of a single string or buffer (default: `false`).
+
+---
+
+### Authentication (`rdfcp:HttpFetchAuth`)
 
 Supported types:
 
 #### HTTP Basic Authentication
 
-- `rdfc:type`: `"basic"`
-- `rdfc:username`: Username string
-- `rdfc:password`: Plaintext password
+- `rdfcp:type`: `"basic"`
+- `rdfcp:username`: Username string
+- `rdfcp:password`: Plaintext password
 
 #### OAuth 2.0 Password Grant
 
-- `rdfc:type`: `"oauth2"`
-- `rdfc:endpoint`: URL of the OAuth 2.0 server
-- `rdfc:username`: Username string
-- `rdfc:password`: Plaintext password
+- `rdfcp:type`: `"oauth2"`
+- `rdfcp:endpoint`: URL of the OAuth 2.0 server
+- `rdfcp:username`: Username string
+- `rdfcp:password`: Plaintext password
 
 > Credentials are only sent to the authentication endpoint, not to the target URL.
 
 ---
 
-## HTTP Server (`rdfc:HttpServer`)
+## HTTP Server (`rdfcp:HttpServer`)
 
-The package also provides the inverse of `rdfc:HttpFetch`: instead of pulling data
-from a URL, `rdfc:HttpServer` starts an HTTP server and writes the body of every
+The package also provides the inverse of `rdfcp:HttpFetch`: instead of pulling data
+from a URL, `rdfcp:HttpServer` starts an HTTP server and writes the body of every
 incoming request to its output channel. This turns a pipeline into an ingestion
 endpoint that other services can push data to.
 
@@ -118,6 +119,7 @@ single `owl:imports` makes both processors available.
 
 ```turtle
 @prefix rdfc: <https://w3id.org/rdf-connect#>.
+@prefix rdfcp: <https://w3id.org/rdf-connect/processors#>.
 @prefix owl: <http://www.w3.org/2002/07/owl#>.
 
 ### Import the processor definitions
@@ -127,31 +129,31 @@ single `owl:imports` makes both processors available.
 <in> a rdfc:Writer.
 
 ### Define and configure the server
-<server> a rdfc:HttpServer;
-    rdfc:port 8080;
-    rdfc:writer <in>;
-    rdfc:options [
-        rdfc:host "0.0.0.0";
-        rdfc:method "POST";
-        rdfc:path "/ingest";
-        rdfc:successStatusCode 202;
-        rdfc:streamThresholdBytes 5242880
+<server> a rdfcp:HttpServer;
+    rdfcp:port 8080;
+    rdfcp:writer <in>;
+    rdfcp:options [
+        rdfcp:host "0.0.0.0";
+        rdfcp:method "POST";
+        rdfcp:path "/ingest";
+        rdfcp:successStatusCode 202;
+        rdfcp:streamThresholdBytes 5242880
     ].
 ```
 
-### Parameters of `rdfc:HttpServer`:
+### Parameters of `rdfcp:HttpServer`:
 
-- `rdfc:port` (**integer**, required): Port to listen on. Use `0` to let the OS assign a free port.
-- `rdfc:writer` (**rdfc:Writer**, required): Output channel that receives each request body. Requests are handled one at a time.
-- `rdfc:options` (**rdfc:HttpServerOptions**, optional): Additional settings (see below).
+- `rdfcp:port` (**integer**, required): Port to listen on. Use `0` to let the OS assign a free port.
+- `rdfcp:writer` (**rdfc:Writer**, required): Output channel that receives each request body. Requests are handled one at a time.
+- `rdfcp:options` (**rdfcp:HttpServerOptions**, optional): Additional settings (see below).
 
-### Parameters of `rdfc:HttpServerOptions`:
+### Parameters of `rdfcp:HttpServerOptions`:
 
-- `rdfc:host` (**string**, optional): Bind address (default: `0.0.0.0`). The default makes the server reachable from outside a Docker container; use `127.0.0.1` to only accept local connections.
-- `rdfc:method` (**string**, optional): Accepted HTTP method (default: `POST`). Requests using any other method receive `405 Method Not Allowed`.
-- `rdfc:path` (**string**, optional): Accepted request path (default: `/`). Requests to any other path receive `404 Not Found`.
-- `rdfc:successStatusCode` (**integer**, optional): Status code returned to clients after the body is successfully written (default: `200`).
-- `rdfc:streamThresholdBytes` (**integer**, optional): Body size, in bytes, above which the request is streamed to the writer instead of buffered in memory (default: `5242880`, i.e. 5MB). Applies whether the size is known up front via `Content-Length` or only discovered while reading a body with no declared length (e.g. chunked transfer encoding).
+- `rdfcp:host` (**string**, optional): Bind address (default: `0.0.0.0`). The default makes the server reachable from outside a Docker container; use `127.0.0.1` to only accept local connections.
+- `rdfcp:method` (**string**, optional): Accepted HTTP method (default: `POST`). Requests using any other method receive `405 Method Not Allowed`.
+- `rdfcp:path` (**string**, optional): Accepted request path (default: `/`). Requests to any other path receive `404 Not Found`.
+- `rdfcp:successStatusCode` (**integer**, optional): Status code returned to clients after the body is successfully written (default: `200`).
+- `rdfcp:streamThresholdBytes` (**integer**, optional): Body size, in bytes, above which the request is streamed to the writer instead of buffered in memory (default: `5242880`, i.e. 5MB). Applies whether the size is known up front via `Content-Length` or only discovered while reading a body with no declared length (e.g. chunked transfer encoding).
 
 ---
 

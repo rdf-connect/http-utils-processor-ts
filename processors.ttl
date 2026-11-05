@@ -1,4 +1,5 @@
 @prefix rdfc: <https://w3id.org/rdf-connect#>.
+@prefix rdfcp: <https://w3id.org/rdf-connect/processors#>.
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>.
 @prefix sh: <http://www.w3.org/ns/shacl#>.
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#>.
@@ -7,7 +8,7 @@
 ### The HTTP Server processor is defined in a separate file.
 <> owl:imports <./server.ttl>.
 
-rdfc:HttpFetch rdfc:jsImplementationOf rdfc:Processor;
+rdfcp:HttpFetch rdfc:jsImplementationOf rdfc:Processor;
   rdfs:label "HTTP Fetch processor";
   rdfs:comment "This processor fetches a URL and writes the response to the output channel. It supports various options such as HTTP method, headers, authentication, and scheduling with cron expressions.";
   rdfc:file <./lib/index.js>;
@@ -15,9 +16,9 @@ rdfc:HttpFetch rdfc:jsImplementationOf rdfc:Processor;
   rdfc:entrypoint <./>.
 
 [ ] a sh:NodeShape;
-  sh:targetClass rdfc:HttpFetchAuth;
+  sh:targetClass rdfcp:HttpFetchAuth;
   sh:property [
-    sh:path rdfc:type;
+    sh:path rdfcp:type;
     sh:codeIdentifier "type";
     sh:name "Authentication type";
     sh:description "Authentication scheme: basic for HTTP Basic authentication, or oauth2 for the OAuth 2.0 password grant.";
@@ -27,9 +28,9 @@ rdfc:HttpFetch rdfc:jsImplementationOf rdfc:Processor;
   ].
 
 [ ] a sh:NodeShape;
-  sh:targetClass rdfc:HttpFetchOptions;
+  sh:targetClass rdfcp:HttpFetchOptions;
   sh:property [
-    sh:path rdfc:method;
+    sh:path rdfcp:method;
     sh:codeIdentifier "method";
     sh:name "HTTP method";
     sh:description "HTTP method of the requests; default is GET.";
@@ -37,41 +38,41 @@ rdfc:HttpFetch rdfc:jsImplementationOf rdfc:Processor;
     sh:datatype xsd:string;
     sh:maxCount 1;
   ], [
-    sh:path rdfc:headers;
+    sh:path rdfcp:headers;
     sh:codeIdentifier "headers";
     sh:name "Headers";
     sh:description "Header to add to the requests, in the format Name: value. Repeat for multiple headers.";
     sh:datatype xsd:string;
   ], [
-    sh:path rdfc:acceptStatusCodes;
+    sh:path rdfcp:acceptStatusCodes;
     sh:codeIdentifier "acceptStatusCodes";
     sh:name "Accepted status codes";
     sh:description "Status code, or range of status codes such as 200-300 with an exclusive end, that counts as a successful response. Repeat for multiple codes; default is 200-300.";
     sh:defaultValue "200-300";
     sh:datatype xsd:string;
   ], [
-    sh:path rdfc:timeOutMilliseconds;
+    sh:path rdfcp:timeOutMilliseconds;
     sh:codeIdentifier "timeOutMilliseconds";
     sh:name "Timeout";
     sh:description "Time in milliseconds a request may take before it fails; no timeout by default.";
     sh:datatype xsd:integer;
     sh:maxCount 1;
   ], [
-    sh:path rdfc:HttpFetchAuth;
-    sh:class rdfc:HttpFetchAuth;
+    sh:path rdfcp:HttpFetchAuth;
+    sh:class rdfcp:HttpFetchAuth;
     sh:codeIdentifier "auth";
     sh:name "Authentication";
     sh:description "Authentication settings for the requests.";
     sh:maxCount 1;
   ], [
-    sh:path rdfc:cron;
+    sh:path rdfcp:cron;
     sh:codeIdentifier "cron";
     sh:name "Schedule";
     sh:description "Cron expression that schedules repeated fetches. Without it, the URLs are fetched once and the output channel is closed.";
     sh:datatype xsd:string;
     sh:maxCount 1;
   ], [
-    sh:path rdfc:runOnInit;
+    sh:path rdfcp:runOnInit;
     sh:codeIdentifier "runOnInit";
     sh:name "Run on start";
     sh:description "Fetch once right away instead of waiting for the first scheduled run; only applies with a cron schedule; default is false.";
@@ -79,7 +80,7 @@ rdfc:HttpFetch rdfc:jsImplementationOf rdfc:Processor;
     sh:datatype xsd:boolean;
     sh:maxCount 1;
   ], [
-    sh:path rdfc:errorsAreFatal;
+    sh:path rdfcp:errorsAreFatal;
     sh:codeIdentifier "errorsAreFatal";
     sh:name "Errors are fatal";
     sh:description "Stop the processor when a request fails, instead of logging the error; default is true.";
@@ -88,7 +89,7 @@ rdfc:HttpFetch rdfc:jsImplementationOf rdfc:Processor;
     sh:maxCount 1;
     sh:minCount 0;
   ], [
-    sh:path rdfc:outputAsBuffer;
+    sh:path rdfcp:outputAsBuffer;
     sh:codeIdentifier "outputAsBuffer";
     sh:name "Output as bytes";
     sh:description "Write each response body as raw bytes instead of decoding it as text; default is false.";
@@ -97,7 +98,7 @@ rdfc:HttpFetch rdfc:jsImplementationOf rdfc:Processor;
     sh:maxCount 1;
     sh:minCount 0;
   ], [
-    sh:path rdfc:outputAsStream;
+    sh:path rdfcp:outputAsStream;
     sh:codeIdentifier "outputAsStream";
     sh:name "Output as stream";
     sh:description "Stream each response body to the output channel instead of writing it as a single message; default is false.";
@@ -108,9 +109,9 @@ rdfc:HttpFetch rdfc:jsImplementationOf rdfc:Processor;
   ].
 
 [ ] a sh:NodeShape;
-  sh:targetClass rdfc:HttpFetch;
+  sh:targetClass rdfcp:HttpFetch;
   sh:property [
-    sh:path rdfc:url;
+    sh:path rdfcp:url;
     sh:codeIdentifier "url";
     sh:name "URL";
     sh:description "URL to fetch. Repeat to fetch several URLs.";
@@ -118,7 +119,7 @@ rdfc:HttpFetch rdfc:jsImplementationOf rdfc:Processor;
     sh:codeType xsd:string;
     sh:minCount 1;
   ], [
-    sh:path rdfc:writer;
+    sh:path rdfcp:writer;
     sh:codeIdentifier "writer";
     sh:name "Output channel";
     sh:description "Output channel to which the response bodies are written.";
@@ -126,11 +127,11 @@ rdfc:HttpFetch rdfc:jsImplementationOf rdfc:Processor;
     sh:maxCount 1;
     sh:minCount 1;
   ], [
-    sh:path rdfc:options;
+    sh:path rdfcp:options;
     sh:codeIdentifier "options";
     sh:name "Options";
     sh:description "Additional request settings, such as the method, headers, authentication and schedule.";
     sh:defaultValue [ ];
-    sh:class rdfc:HttpFetchOptions;
+    sh:class rdfcp:HttpFetchOptions;
     sh:maxCount 1;
   ].
