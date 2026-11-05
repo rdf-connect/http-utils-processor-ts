@@ -22,7 +22,30 @@ rdfcp:HttpFetchAuthShape a sh:NodeShape;
     sh:name "Authentication type";
     sh:description "Authentication scheme: basic for HTTP Basic authentication, or oauth2 for the OAuth 2.0 password grant.";
     sh:datatype xsd:string;
+    sh:in ( "basic" "oauth2" );
     sh:minCount 1;
+    sh:maxCount 1;
+  ], [
+    sh:path rdfcp:username;
+    sh:codeIdentifier "username";
+    sh:name "Username";
+    sh:description "Username to authenticate with.";
+    sh:datatype xsd:string;
+    sh:maxCount 1;
+  ], [
+    sh:path rdfcp:password;
+    sh:codeIdentifier "password";
+    sh:name "Password";
+    sh:description "Password to authenticate with.";
+    sh:datatype xsd:string;
+    sh:maxCount 1;
+  ], [
+    sh:path rdfcp:endpoint;
+    sh:codeIdentifier "endpoint";
+    sh:name "Token endpoint";
+    sh:description "URL of the OAuth 2.0 token endpoint; only used by the oauth2 type.";
+    sh:nodeKind sh:IRIOrLiteral;
+    sh:codeType xsd:string;
     sh:maxCount 1;
   ].
 
@@ -56,7 +79,7 @@ rdfcp:HttpFetchOptionsShape a sh:NodeShape;
     sh:datatype xsd:integer;
     sh:maxCount 1;
   ], [
-    sh:path rdfcp:HttpFetchAuth;
+    sh:path rdfcp:auth;
     sh:node rdfcp:HttpFetchAuthShape;
     sh:codeIdentifier "auth";
     sh:name "Authentication";
