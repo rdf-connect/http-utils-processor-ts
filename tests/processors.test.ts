@@ -84,6 +84,7 @@ describe("http fetch", () => {
             errorsAreFatal: true,
             outputAsBuffer: false,
             outputAsStream: false,
+            bodyCanBeEmpty: false,
         });
     });
 
@@ -119,6 +120,7 @@ describe("http fetch", () => {
             errorsAreFatal: true,
             outputAsBuffer: false,
             outputAsStream: true,
+            bodyCanBeEmpty: false,
         });
     });
 
