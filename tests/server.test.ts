@@ -262,7 +262,7 @@ describe("httpServer - definition", () => {
 
         <http://example.com/ns#processor> a rdfcp:HttpServer;
             rdfcp:port 8080;
-            rdfcp:writer <jw>.
+            rdfcp:output <jw>.
     `;
 
     test("is defined", async () => {

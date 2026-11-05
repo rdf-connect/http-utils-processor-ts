@@ -39,7 +39,7 @@ npm install @rdfc/http-utils-processor-ts
 ### Define and configure the processor
 <fetcher> a rdfcp:HttpFetch;
     rdfcp:url "https://example.org/api/data";
-    rdfcp:writer <out>;
+    rdfcp:output <out>;
     rdfcp:options [
         rdfcp:method "GET";
         rdfcp:headers "Authorization: Bearer TOKEN";
@@ -64,7 +64,7 @@ npm install @rdfc/http-utils-processor-ts
 ### Parameters of `rdfcp:HttpFetch`:
 
 - `rdfcp:url` (**string** or IRI, required): URL(s) to fetch. Can be given more than once to fetch several URLs.
-- `rdfcp:writer` (**rdfc:Writer**, required): Output channel to write the fetched response.
+- `rdfcp:output` (**rdfc:Writer**, required): Output channel to write the fetched response.
 - `rdfcp:options` (**rdfcp:HttpFetchOptions**, optional): Optional settings including method, headers, timeout, authentication, cron, and more.
 
 ---
@@ -131,7 +131,7 @@ single `owl:imports` makes both processors available.
 ### Define and configure the server
 <server> a rdfcp:HttpServer;
     rdfcp:port 8080;
-    rdfcp:writer <in>;
+    rdfcp:output <in>;
     rdfcp:options [
         rdfcp:host "0.0.0.0";
         rdfcp:method "POST";
@@ -144,7 +144,7 @@ single `owl:imports` makes both processors available.
 ### Parameters of `rdfcp:HttpServer`:
 
 - `rdfcp:port` (**integer**, required): Port to listen on. Use `0` to let the OS assign a free port.
-- `rdfcp:writer` (**rdfc:Writer**, required): Output channel that receives each request body. Requests are handled one at a time.
+- `rdfcp:output` (**rdfc:Writer**, required): Output channel that receives each request body. Requests are handled one at a time.
 - `rdfcp:options` (**rdfcp:HttpServerOptions**, optional): Additional settings (see below).
 
 ### Parameters of `rdfcp:HttpServerOptions`:

@@ -66,7 +66,7 @@ rdfcp:HttpServer rdfc:jsImplementationOf rdfc:Processor;
     sh:minCount 1;
     sh:maxCount 1;
   ], [
-    sh:path rdfcp:writer;
+    sh:path rdfcp:output;
     sh:codeIdentifier "writer";
     sh:name "Output channel";
     sh:description "Output channel to which the body of every accepted request is written.";
