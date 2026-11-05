@@ -18,7 +18,8 @@ rdfc:HttpFetch rdfc:jsImplementationOf rdfc:Processor;
   sh:targetClass rdfc:HttpFetchAuth;
   sh:property [
     sh:path rdfc:type;
-    sh:name "type";
+    sh:codeIdentifier "type";
+    sh:name "Authentication type";
     sh:datatype xsd:string;
     sh:minCount 1;
     sh:maxCount 1;
@@ -28,57 +29,67 @@ rdfc:HttpFetch rdfc:jsImplementationOf rdfc:Processor;
   sh:targetClass rdfc:HttpFetchOptions;
   sh:property [
     sh:path rdfc:method;
-    sh:name "method";
+    sh:codeIdentifier "method";
+    sh:name "HTTP method";
     sh:defaultValue "GET";
     sh:datatype xsd:string;
     sh:maxCount 1;
   ], [
     sh:path rdfc:headers;
-    sh:name "headers";
+    sh:codeIdentifier "headers";
+    sh:name "Headers";
     sh:datatype xsd:string;
   ], [
     sh:path rdfc:acceptStatusCodes;
-    sh:name "acceptStatusCodes";
+    sh:codeIdentifier "acceptStatusCodes";
+    sh:name "Accepted status codes";
     sh:defaultValue "200-300";
     sh:datatype xsd:string;
   ], [
     sh:path rdfc:timeOutMilliseconds;
-    sh:name "timeOutMilliseconds";
+    sh:codeIdentifier "timeOutMilliseconds";
+    sh:name "Timeout";
     sh:datatype xsd:integer;
     sh:maxCount 1;
   ], [
     sh:path rdfc:HttpFetchAuth;
     sh:class rdfc:HttpFetchAuth;
-    sh:name "auth";
+    sh:codeIdentifier "auth";
+    sh:name "Authentication";
     sh:maxCount 1;
   ], [
     sh:path rdfc:cron;
-    sh:name "cron";
+    sh:codeIdentifier "cron";
+    sh:name "Schedule";
     sh:datatype xsd:string;
     sh:maxCount 1;
   ], [
     sh:path rdfc:runOnInit;
-    sh:name "runOnInit";
+    sh:codeIdentifier "runOnInit";
+    sh:name "Run on start";
     sh:defaultValue false;
     sh:datatype xsd:boolean;
     sh:maxCount 1;
   ], [
     sh:path rdfc:errorsAreFatal;
-    sh:name "errorsAreFatal";
+    sh:codeIdentifier "errorsAreFatal";
+    sh:name "Errors are fatal";
     sh:defaultValue true;
     sh:datatype xsd:boolean;
     sh:maxCount 1;
     sh:minCount 0;
   ], [
     sh:path rdfc:outputAsBuffer;
-    sh:name "outputAsBuffer";
+    sh:codeIdentifier "outputAsBuffer";
+    sh:name "Output as bytes";
     sh:defaultValue false;
     sh:datatype xsd:boolean;
     sh:maxCount 1;
     sh:minCount 0;
   ], [
     sh:path rdfc:outputAsStream;
-    sh:name "outputAsStream";
+    sh:codeIdentifier "outputAsStream";
+    sh:name "Output as stream";
     sh:defaultValue false;
     sh:datatype xsd:boolean;
     sh:maxCount 1;
@@ -89,19 +100,22 @@ rdfc:HttpFetch rdfc:jsImplementationOf rdfc:Processor;
   sh:targetClass rdfc:HttpFetch;
   sh:property [
     sh:path rdfc:url;
-    sh:name "url";
+    sh:codeIdentifier "url";
+    sh:name "URL";
     sh:nodeKind sh:IRIOrLiteral;
     sh:codeType xsd:string;
     sh:minCount 1;
   ], [
     sh:path rdfc:writer;
-    sh:name "writer";
+    sh:codeIdentifier "writer";
+    sh:name "Output channel";
     sh:class rdfc:Writer;
     sh:maxCount 1;
     sh:minCount 1;
   ], [
     sh:path rdfc:options;
-    sh:name "options";
+    sh:codeIdentifier "options";
+    sh:name "Options";
     sh:defaultValue [ ];
     sh:class rdfc:HttpFetchOptions;
     sh:maxCount 1;
