@@ -5,7 +5,7 @@
 
 rdfc:HttpServer rdfc:jsImplementationOf rdfc:Processor;
   rdfs:label "HTTP Server processor";
-  rdfs:description "This processor starts an HTTP server and writes the body of every incoming request to the output channel. It supports configuring the bind address, accepted HTTP method, path, and the status code returned to clients.";
+  rdfs:comment "This processor starts an HTTP server and writes the body of every incoming request to the output channel. It supports configuring the bind address, accepted HTTP method, path, and the status code returned to clients.";
   rdfc:file <./lib/server.js>;
   rdfc:class "HttpServer";
   rdfc:entrypoint <./>.

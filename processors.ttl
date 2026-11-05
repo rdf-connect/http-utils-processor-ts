@@ -9,7 +9,7 @@
 
 rdfc:HttpFetch rdfc:jsImplementationOf rdfc:Processor;
   rdfs:label "HTTP Fetch processor";
-  rdfs:description "This processor fetches a URL and writes the response to the output channel. It supports various options such as HTTP method, headers, authentication, and scheduling with cron expressions.";
+  rdfs:comment "This processor fetches a URL and writes the response to the output channel. It supports various options such as HTTP method, headers, authentication, and scheduling with cron expressions.";
   rdfc:file <./lib/index.js>;
   rdfc:class "HttpFetch";
   rdfc:entrypoint <./>.
