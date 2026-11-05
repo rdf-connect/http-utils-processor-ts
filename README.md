@@ -81,6 +81,7 @@ npm install @rdfc/http-utils-processor-ts
 - `rdfcp:errorsAreFatal` (**boolean**, optional): Exit on fetch errors (default: `true`).
 - `rdfcp:outputAsBuffer` (**boolean**, optional): Whether the response is returned as a buffer (default: `false`).
 - `rdfcp:outputAsStream` (**boolean**, optional): Whether the response is returned as a stream instead of a single string or buffer (default: `false`).
+- `rdfcp:bodyCanBeEmpty` (**boolean**, optional): Whether a response without a body is accepted instead of throwing an error. Must be `true` for the `HEAD` method (default: `false`).
 
 ---
 

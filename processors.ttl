@@ -127,6 +127,14 @@ rdfcp:HttpFetchOptionsShape a sh:NodeShape;
     sh:datatype xsd:boolean;
     sh:maxCount 1;
     sh:minCount 0;
+  ], [
+    sh:path rdfcp:bodyCanBeEmpty;
+    sh:codeIdentifier "bodyCanBeEmpty";
+    sh:name "Body can be empty";
+    sh:description "Accept responses without a body instead of failing; must be true for the HEAD method; default is false.";
+    sh:defaultValue false;
+    sh:datatype xsd:boolean;
+    sh:maxCount 1;
   ].
 
 [ ] a sh:NodeShape;
