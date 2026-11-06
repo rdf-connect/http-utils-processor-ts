@@ -258,10 +258,11 @@ describe("httpServer - streaming threshold", () => {
 describe("httpServer - definition", () => {
     const pipeline = `
         @prefix rdfc: <https://w3id.org/rdf-connect#>.
+        @prefix rdfcp: <https://w3id.org/rdf-connect/processors#>.
 
-        <http://example.com/ns#processor> a rdfc:HttpServer;
-            rdfc:port 8080;
-            rdfc:writer <jw>.
+        <http://example.com/ns#processor> a rdfcp:HttpServer;
+            rdfcp:port 8080;
+            rdfcp:output <jw>.
     `;
 
     test("is defined", async () => {

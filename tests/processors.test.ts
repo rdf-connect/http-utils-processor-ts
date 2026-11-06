@@ -6,10 +6,11 @@ import { resolve } from "path";
 describe("http fetch", () => {
     const pipeline = `
         @prefix rdfc: <https://w3id.org/rdf-connect#>.
+        @prefix rdfcp: <https://w3id.org/rdf-connect/processors#>.
 
-        <http://example.com/ns#processor> a rdfc:HttpFetch;
-            rdfc:url "http://example.com";
-            rdfc:writer <jw>.
+        <http://example.com/ns#processor> a rdfcp:HttpFetch;
+            rdfcp:url "http://example.com";
+            rdfcp:output <jw>.
     `;
 
     test("is defined", async () => {
@@ -46,10 +47,11 @@ describe("http fetch", () => {
             resolve("./pipeline.ttl"),
             `
             @prefix rdfc: <https://w3id.org/rdf-connect#>.
+            @prefix rdfcp: <https://w3id.org/rdf-connect/processors#>.
 
-            <http://example.com/ns#processor> a rdfc:HttpFetch;
-                rdfc:url <http://example.com/a>, "http://example.com/b";
-                rdfc:writer <jw>.
+            <http://example.com/ns#processor> a rdfcp:HttpFetch;
+                rdfcp:url <http://example.com/a>, "http://example.com/b";
+                rdfcp:output <jw>.
         `,
         );
 
@@ -92,13 +94,14 @@ describe("http fetch", () => {
             resolve("./pipeline.ttl"),
             `
             @prefix rdfc: <https://w3id.org/rdf-connect#>.
+            @prefix rdfcp: <https://w3id.org/rdf-connect/processors#>.
 
-            <http://example.com/ns#processor> a rdfc:HttpFetch;
-                rdfc:url "http://example.com";
-                rdfc:writer <jw>;
-                rdfc:options [
-                    rdfc:method "POST";
-                    rdfc:outputAsStream true
+            <http://example.com/ns#processor> a rdfcp:HttpFetch;
+                rdfcp:url "http://example.com";
+                rdfcp:output <jw>;
+                rdfcp:options [
+                    rdfcp:method "POST";
+                    rdfcp:outputAsStream true
                 ].
         `,
         );
