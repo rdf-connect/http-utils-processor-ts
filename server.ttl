@@ -1,68 +1,84 @@
 @prefix rdfc: <https://w3id.org/rdf-connect#>.
+@prefix rdfcp: <https://w3id.org/rdf-connect/processors#>.
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>.
 @prefix sh: <http://www.w3.org/ns/shacl#>.
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#>.
 
-rdfc:HttpServer rdfc:jsImplementationOf rdfc:Processor;
+rdfcp:HttpServer rdfc:jsImplementationOf rdfc:Processor;
   rdfs:label "HTTP Server processor";
-  rdfs:description "This processor starts an HTTP server and writes the body of every incoming request to the output channel. It supports configuring the bind address, accepted HTTP method, path, and the status code returned to clients.";
+  rdfs:comment "This processor starts an HTTP server and writes the body of every incoming request to the output channel. It supports configuring the bind address, accepted HTTP method, path, and the status code returned to clients.";
   rdfc:file <./lib/server.js>;
   rdfc:class "HttpServer";
   rdfc:entrypoint <./>.
 
-[ ] a sh:NodeShape;
-  sh:targetClass rdfc:HttpServerOptions;
+rdfcp:HttpServerOptionsShape a sh:NodeShape;
   sh:property [
-    sh:path rdfc:host;
-    sh:name "host";
+    sh:path rdfcp:host;
+    sh:codeIdentifier "host";
+    sh:name "Host";
+    sh:description "Address the server binds to; use 127.0.0.1 to only accept local connections; default is 0.0.0.0.";
     sh:defaultValue "0.0.0.0";
     sh:datatype xsd:string;
     sh:maxCount 1;
   ], [
-    sh:path rdfc:method;
-    sh:name "method";
+    sh:path rdfcp:method;
+    sh:codeIdentifier "method";
+    sh:name "HTTP method";
+    sh:description "HTTP method the server accepts; requests with another method get 405 Method Not Allowed; default is POST.";
     sh:defaultValue "POST";
     sh:datatype xsd:string;
     sh:maxCount 1;
   ], [
-    sh:path rdfc:path;
-    sh:name "path";
+    sh:path rdfcp:path;
+    sh:codeIdentifier "path";
+    sh:name "Path";
+    sh:description "Request path the server accepts; requests to another path get 404 Not Found; default is /.";
     sh:defaultValue "/";
     sh:datatype xsd:string;
     sh:maxCount 1;
   ], [
-    sh:path rdfc:successStatusCode;
-    sh:name "successStatusCode";
+    sh:path rdfcp:successStatusCode;
+    sh:codeIdentifier "successStatusCode";
+    sh:name "Success status code";
+    sh:description "Status code returned to clients once the request body is written; default is 200.";
     sh:defaultValue 200;
     sh:datatype xsd:integer;
     sh:maxCount 1;
   ], [
-    sh:path rdfc:streamThresholdBytes;
-    sh:name "streamThresholdBytes";
+    sh:path rdfcp:streamThresholdBytes;
+    sh:codeIdentifier "streamThresholdBytes";
+    sh:name "Stream threshold";
+    sh:description "Body size in bytes above which the request body is streamed to the output channel instead of buffered in memory; default is 5242880 (5 MB).";
     sh:defaultValue 5242880;
     sh:datatype xsd:integer;
     sh:maxCount 1;
   ].
 
 [ ] a sh:NodeShape;
-  sh:targetClass rdfc:HttpServer;
+  sh:targetClass rdfcp:HttpServer;
   sh:property [
-    sh:path rdfc:port;
-    sh:name "port";
+    sh:path rdfcp:port;
+    sh:codeIdentifier "port";
+    sh:name "Port";
+    sh:description "Port the server listens on; use 0 to let the operating system pick a free port.";
     sh:datatype xsd:integer;
     sh:minCount 1;
     sh:maxCount 1;
   ], [
-    sh:path rdfc:writer;
-    sh:name "writer";
+    sh:path rdfcp:output;
+    sh:codeIdentifier "writer";
+    sh:name "Output channel";
+    sh:description "Output channel to which the body of every accepted request is written.";
     sh:class rdfc:Writer;
     sh:minCount 1;
     sh:maxCount 1;
   ], [
-    sh:path rdfc:options;
-    sh:name "options";
+    sh:path rdfcp:options;
+    sh:codeIdentifier "options";
+    sh:name "Options";
+    sh:description "Additional server settings, such as the bind address, method, path and status code.";
     sh:defaultValue [ ];
-    sh:class rdfc:HttpServerOptions;
+    sh:node rdfcp:HttpServerOptionsShape;
     sh:maxCount 1;
   ].
 
