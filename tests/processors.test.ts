@@ -84,6 +84,7 @@ describe("http fetch", () => {
             errorsAreFatal: true,
             outputAsBuffer: false,
             outputAsStream: false,
+            bodyCanBeEmpty: false,
         });
     });
 
@@ -119,6 +120,43 @@ describe("http fetch", () => {
             errorsAreFatal: true,
             outputAsBuffer: false,
             outputAsStream: true,
+            bodyCanBeEmpty: false,
+        });
+    });
+
+    test("reads the authentication settings", async () => {
+        const helper = new ProcHelper<HttpFetch>();
+        await helper.importFile(resolve("./processors.ttl"));
+        await helper.importInline(
+            resolve("./pipeline.ttl"),
+            `
+            @prefix rdfc: <https://w3id.org/rdf-connect#>.
+            @prefix rdfcp: <https://w3id.org/rdf-connect/processors#>.
+
+            <http://example.com/ns#processor> a rdfcp:HttpFetch;
+                rdfcp:url "http://example.com";
+                rdfcp:output <jw>;
+                rdfcp:options [
+                    rdfcp:auth [
+                        rdfcp:type "oauth2";
+                        rdfcp:endpoint <http://example.com/token>;
+                        rdfcp:username "user";
+                        rdfcp:password "pass"
+                    ]
+                ].
+        `,
+        );
+
+        helper.getConfig("HttpFetch");
+        const proc = await helper.getProcessor(
+            "http://example.com/ns#processor",
+        );
+
+        expect(proc.options.auth).toEqual({
+            type: "oauth2",
+            endpoint: "http://example.com/token",
+            username: "user",
+            password: "pass",
         });
     });
 });
